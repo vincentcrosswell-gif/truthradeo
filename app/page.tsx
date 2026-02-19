@@ -79,9 +79,21 @@ export default function Home() {
               </div>
 
               <div className="mt-7 grid gap-3 md:grid-cols-3">
-                <MiniStat label="Time to value" value="5–15 min" sub="Snapshot start" />
-                <MiniStat label="Output" value="Blueprint + Assets" sub="Not advice" />
-                <MiniStat label="Focus" value="Chicago Stage" sub="Revenue foundation" />
+                <MiniStat
+                  label="Time to value"
+                  value="5–15 min"
+                  sub="Snapshot start"
+                />
+                <MiniStat
+                  label="Output"
+                  value="Blueprint + Assets"
+                  sub="Not advice"
+                />
+                <MiniStat
+                  label="Focus"
+                  value="Chicago Stage"
+                  sub="Revenue foundation"
+                />
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2 text-xs text-white/60">
@@ -113,11 +125,26 @@ export default function Home() {
                 </div>
 
                 <div className="mt-5 grid gap-3">
-                  <PosterRow title="Snapshot" desc="Identity, links, audience, revenue" />
-                  <PosterRow title="Diagnostic" desc="Leaks + priorities + risk/impact" />
-                  <PosterRow title="Offer Architect" desc="Offer types + pricing ladder" />
-                  <PosterRow title="Execution Assets" desc="Copy + scripts + timeline" />
-                  <PosterRow title="Iteration Plan" desc="What to tweak after results" />
+                  <PosterRow
+                    title="Snapshot"
+                    desc="Identity, links, audience, revenue"
+                  />
+                  <PosterRow
+                    title="Diagnostic"
+                    desc="Leaks + priorities + risk/impact"
+                  />
+                  <PosterRow
+                    title="Offer Architect"
+                    desc="Offer types + pricing ladder"
+                  />
+                  <PosterRow
+                    title="Execution Assets"
+                    desc="Copy + scripts + timeline"
+                  />
+                  <PosterRow
+                    title="Iteration Plan"
+                    desc="What to tweak after results"
+                  />
                 </div>
 
                 <div className="mt-5">
@@ -149,7 +176,8 @@ export default function Home() {
               <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
                 <div className="text-xs text-white/60">Fast clarity</div>
                 <div className="mt-1 text-sm text-white/75">
-                  “I finally stopped guessing what to sell and how to launch it.”
+                  “I finally stopped guessing what to sell and how to launch
+                  it.”
                 </div>
                 <div className="mt-2 text-xs text-white/50">
                   — early creator (example)
@@ -213,14 +241,38 @@ export default function Home() {
               </div>
 
               <div className="mt-6 grid gap-3 md:grid-cols-2">
-                <Deliverable title="Creator Snapshot summary" desc="Your signal packaged cleanly." />
-                <Deliverable title="Revenue Diagnostic report" desc="Leaks + priorities + ranking." />
-                <Deliverable title="Offer ladder + pricing" desc="What you sell + how it stacks." />
-                <Deliverable title="Offer page copy" desc="Headline, bullets, proof angles." />
-                <Deliverable title="DM / email scripts" desc="Booking + collabs + customers." />
-                <Deliverable title="Launch timeline" desc="7–30 day rollout plan." />
-                <Deliverable title="Simple forecast model" desc="Targets + volume assumptions." />
-                <Deliverable title="Iteration checklist" desc="What to tweak after results." />
+                <Deliverable
+                  title="Creator Snapshot summary"
+                  desc="Your signal packaged cleanly."
+                />
+                <Deliverable
+                  title="Revenue Diagnostic report"
+                  desc="Leaks + priorities + ranking."
+                />
+                <Deliverable
+                  title="Offer ladder + pricing"
+                  desc="What you sell + how it stacks."
+                />
+                <Deliverable
+                  title="Offer page copy"
+                  desc="Headline, bullets, proof angles."
+                />
+                <Deliverable
+                  title="DM / email scripts"
+                  desc="Booking + collabs + customers."
+                />
+                <Deliverable
+                  title="Launch timeline"
+                  desc="7–30 day rollout plan."
+                />
+                <Deliverable
+                  title="Simple forecast model"
+                  desc="Targets + volume assumptions."
+                />
+                <Deliverable
+                  title="Iteration checklist"
+                  desc="What to tweak after results."
+                />
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -392,8 +444,8 @@ export default function Home() {
         <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/5 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="text-sm text-white/70">
-              “Lifetime” applies to **Stage 1 (Chicago)** access. Future stages
-              are separate.
+              “Lifetime” applies to <span className="font-semibold text-white/80">Stage 1 (Chicago)</span>{" "}
+              access. Future stages are separate.
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/pricing">
@@ -489,7 +541,6 @@ export default function Home() {
 function BackgroundFX() {
   return (
     <>
-      {/* subtle noise / gradients */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(70%_70%_at_50%_20%,rgba(255,255,255,0.10),transparent_60%),radial-gradient(70%_70%_at_20%_80%,rgba(255,255,255,0.06),transparent_55%),radial-gradient(70%_70%_at_80%_80%,rgba(255,255,255,0.06),transparent_55%)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.07] [background-image:linear-gradient(to_right,rgba(255,255,255,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.25)_1px,transparent_1px)] [background-size:48px_48px]" />
     </>
@@ -572,16 +623,19 @@ function StickyHeader() {
   );
 }
 
+/* ✅ FIXED: no styled-jsx here */
 function Marquee() {
   return (
     <div className="border-y border-white/10 bg-white/[0.03]">
       <div className="mx-auto w-full max-w-6xl px-6 py-3">
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/35">
-          <div className="flex animate-[marquee_18s_linear_infinite] whitespace-nowrap py-3 text-xs text-white/60">
+          <div className="flex whitespace-nowrap py-3 text-xs text-white/60 animate-[tr_marquee_18s_linear_infinite]">
             <span className="mx-6">Snapshot → Diagnostic → Offer → Assets → Iterate</span>
             <span className="mx-6">Chicago Stage: Revenue Architecture Engine</span>
             <span className="mx-6">Execution assets • DM scripts • Offer copy • Timeline</span>
             <span className="mx-6">Built for shows • merch • bookings • drops</span>
+
+            {/* duplicate content for seamless loop */}
             <span className="mx-6">Snapshot → Diagnostic → Offer → Assets → Iterate</span>
             <span className="mx-6">Chicago Stage: Revenue Architecture Engine</span>
             <span className="mx-6">Execution assets • DM scripts • Offer copy • Timeline</span>
@@ -589,14 +643,6 @@ function Marquee() {
           </div>
         </div>
       </div>
-
-      {/* keyframes */}
-      <style jsx global>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -681,7 +727,15 @@ function Quote({ who, text }: { who: string; text: string }) {
   );
 }
 
-function StepCard({ n, title, desc }: { n: string; title: string; desc: string }) {
+function StepCard({
+  n,
+  title,
+  desc,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="text-xs font-semibold text-white/60">{n}</div>
