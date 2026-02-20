@@ -35,3 +35,41 @@ body {
     transform: translateX(-50%);
   }
 }
+
+/* ✅ Chicago Pulse animations */
+@keyframes tr_shimmer {
+  0% { transform: translateX(-60%); opacity: 0.35; }
+  50% { opacity: 0.55; }
+  100% { transform: translateX(60%); opacity: 0.35; }
+}
+
+@keyframes tr_fill {
+  from { width: 0%; }
+  to { width: var(--w); }
+}
+
+.tr-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.tr-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.16),
+    transparent
+  );
+  animation: tr_shimmer 2.8s ease-in-out infinite;
+}
+
+.tr-bar {
+  width: 0%;
+  animation: tr_fill 900ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
