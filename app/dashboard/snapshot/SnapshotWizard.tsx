@@ -52,7 +52,7 @@ export default function SnapshotWizard() {
 
   const [data, setData] = useState<Snapshot>({
     artistName: "",
-    cityArea: "Chicago",
+    cityArea: "", // now auto-detect / manual (was "Chicago")
     genre: "",
     vibeTags: "",
     primaryGoal: "",
@@ -118,7 +118,6 @@ export default function SnapshotWizard() {
     });
 
     if (!res.ok) {
-      // Try to read json error, fallback to generic.
       let msg = "Could not save snapshot to server.";
       try {
         const j = await res.json();
@@ -147,11 +146,8 @@ export default function SnapshotWizard() {
     setServerError(null);
 
     try {
-      // keep local backup too
       saveLocal();
       await saveToServer();
-
-      // Go to summary page that reads from DB
       router.push("/dashboard/snapshot/summary");
     } catch (e: any) {
       setServerError(e?.message ?? "Something went wrong saving your snapshot.");
@@ -249,24 +245,27 @@ export default function SnapshotWizard() {
                 onChange={(v) => update("artistName", v)}
                 placeholder="e.g., Southside Nova"
               />
-              <Field
-                label="City / neighborhood focus"
+
+              {/* ✅ Location auto-detect replaces neighborhood typing */}
+              <LocationPicker
                 value={data.cityArea}
                 onChange={(v) => update("cityArea", v)}
-                placeholder="e.g., Pilsen / Logan Square"
               />
+
               <Field
                 label="Primary genre"
                 value={data.genre}
                 onChange={(v) => update("genre", v)}
                 placeholder="e.g., House / Drill / Alt R&B"
               />
+
               <Field
                 label="Vibe tags (comma-separated)"
                 value={data.vibeTags}
                 onChange={(v) => update("vibeTags", v)}
                 placeholder="e.g., gritty, euphoric, late-night"
               />
+
               <Field
                 className="md:col-span-2"
                 label="Primary goal for the next 60 days"
@@ -435,6 +434,93 @@ export default function SnapshotWizard() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LocationPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [status, setStatus] = useState<string>("");
+
+  async function useMyLocation() {
+    setStatus("Detecting your city...");
+    if (!("geolocation" in navigator)) {
+      setStatus("Geolocation not supported. Type your city instead.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+
+          const res = await fetch("/api/geo/reverse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat, lng }),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) {
+            setStatus("Could not detect city. Type it manually.");
+            return;
+          }
+
+          const display = String(json?.display ?? "").trim();
+          if (display) {
+            onChange(display);
+            setStatus("City detected ✓");
+            setTimeout(() => setStatus(""), 1500);
+          } else {
+            setStatus("Could not detect city. Type it manually.");
+          }
+        } catch {
+          setStatus("Could not detect city. Type it manually.");
+        }
+      },
+      () => {
+        setStatus("Location permission denied. Type your city manually.");
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+  }
+
+  return (
+    <label className="grid gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-semibold text-white/80">
+          Your city (auto-detect)
+        </span>
+        <button
+          type="button"
+          onClick={useMyLocation}
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/10"
+        >
+          Use my location
+        </button>
+      </div>
+
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="e.g., Chicago, IL"
+        className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/25"
+      />
+
+      {status ? (
+        <div className="text-xs text-white/60">{status}</div>
+      ) : (
+        <div className="text-xs text-white/55">
+          We only use location to fill your city — we don’t store coordinates.
+        </div>
+      )}
+    </label>
   );
 }
 
