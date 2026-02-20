@@ -136,7 +136,7 @@ export default function SnapshotWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const [data, setData] = useState<Snapshot>({
+  const emptySnapshot: Snapshot = {
     artistName: "",
     cityArea: "",
 
@@ -163,7 +163,9 @@ export default function SnapshotWizard() {
     collabTargets: "",
 
     biggestBlocker: "",
-  });
+  };
+
+  const [data, setData] = useState<Snapshot>(emptySnapshot);
 
   /**
    * Local UI state for "Other" fields so we don't lose user input.
@@ -238,7 +240,6 @@ export default function SnapshotWizard() {
       setBlockerChoice("");
       setBlockerOther("");
     }
-    // We only want this to run when the loaded snapshot changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.genre, data.primaryGoal, data.biggestBlocker]);
 
@@ -277,6 +278,56 @@ export default function SnapshotWizard() {
     }
 
     return res.json();
+  }
+
+  async function resetSnapshot() {
+    if (isSubmitting) return;
+
+    const ok = window.confirm(
+      "Reset your Snapshot?\n\nThis deletes your saved Snapshot from the database (Chicago Pulse) and clears your local draft."
+    );
+    if (!ok) return;
+
+    setIsSubmitting(true);
+    setServerError(null);
+
+    try {
+      const res = await fetch("/api/snapshot/reset", { method: "POST" });
+      if (!res.ok) {
+        let msg = "Could not reset snapshot.";
+        try {
+          const j = await res.json();
+          if (j?.error) msg = String(j.error);
+        } catch {
+          // ignore
+        }
+        throw new Error(msg);
+      }
+
+      // Clear local draft
+      localStorage.removeItem(STORAGE_KEY);
+
+      // Reset wizard + form
+      setStepIndex(0);
+      setData(emptySnapshot);
+
+      // Reset "Other" UI state
+      setGenreChoice("");
+      setGenreOther("");
+      setGoalChoice("");
+      setGoalOther("");
+      setBlockerChoice("");
+      setBlockerOther("");
+
+      setSavedToast(false);
+
+      // Refresh so Chicago Pulse updates immediately
+      router.refresh();
+    } catch (e: any) {
+      setServerError(e?.message ?? "Reset failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function next() {
@@ -358,19 +409,31 @@ export default function SnapshotWizard() {
             </p>
           </div>
 
-          {savedToast ? (
-            <div className="rounded-full border border-white/15 bg-black/40 px-3 py-1 text-xs text-white/80">
-              Saved ✓
-            </div>
-          ) : (
+          {/* Save + Reset controls */}
+          <div className="flex items-center gap-2">
+            {savedToast ? (
+              <div className="rounded-full border border-white/15 bg-black/40 px-3 py-1 text-xs text-white/80">
+                Saved ✓
+              </div>
+            ) : (
+              <button
+                onClick={saveLocal}
+                disabled={isSubmitting}
+                className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-40"
+              >
+                Save
+              </button>
+            )}
+
             <button
-              onClick={saveLocal}
+              onClick={resetSnapshot}
               disabled={isSubmitting}
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-40"
+              className="rounded-xl border border-white/15 bg-red-500/10 px-4 py-2 text-sm text-red-100 hover:bg-red-500/20 disabled:opacity-40"
+              title="Deletes your snapshot from the database + clears local draft"
             >
-              Save
+              Reset
             </button>
-          )}
+          </div>
         </div>
 
         {serverError ? (
@@ -407,7 +470,6 @@ export default function SnapshotWizard() {
                     setGenreOther("");
                     update("genre", v);
                   } else {
-                    // keep current typed value (or blank)
                     update("genre", genreOther || "");
                   }
                 }}
