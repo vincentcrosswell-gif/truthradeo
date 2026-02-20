@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CreatorSnapshot {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  artistName           String   @default("")
+  cityArea             String   @default("Chicago")
+  genre                String   @default("")
+  vibeTags             String   @default("")
+  primaryGoal          String   @default("")
+
+  spotify              String   @default("")
+  youtube              String   @default("")
+  instagram            String   @default("")
+  tiktok               String   @default("")
+  website              String   @default("")
+
+  audienceSize         String   @default("")
+  emailList            String   @default("")
+  monthlyListeners     String   @default("")
+
+  currentIncomeStreams String   @default("")
+  currentOffer         String   @default("")
+  priceRange           String   @default("")
+
+  upcomingRelease      String   @default("")
+  performanceFrequency String   @default("")
+  collabTargets        String   @default("")
+
+  biggestBlocker       String   @default("")
+}
+
+model DiagnosticReport {
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // link to snapshot if you want traceability
+  snapshotId  String?
+  snapshot    CreatorSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+
+  // scores (0-100)
+  monetizationScore Int
+  audienceScore     Int
+  offerScore        Int
+  momentumScore     Int
+  clarityScore      Int
+
+  // main outputs
+  topMovesJson      Json
+  notesJson         Json
+
+  @@index([userId, createdAt])
+}
+
+model OfferBlueprint {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Inputs
+  lane      String   // "service" | "digital" | "membership" | "live" | "hybrid"
+  goal      String   @default("")
+  audience  String   @default("")
+  vibe      String   @default("")
+
+  // Outputs (saved blueprint)
+  title     String   @default("")
+  promise   String   @default("")
+  pricing   Json
+  deliverables Json
+  funnel    Json
+  scripts   Json
+
+  @@index([userId, createdAt])
+}

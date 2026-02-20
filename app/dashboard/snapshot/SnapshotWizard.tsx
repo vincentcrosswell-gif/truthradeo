@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Snapshot = {
   artistName: string;
@@ -42,8 +43,12 @@ const steps = [
 ] as const;
 
 export default function SnapshotWizard() {
+  const router = useRouter();
+
   const [stepIndex, setStepIndex] = useState(0);
   const [savedToast, setSavedToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const [data, setData] = useState<Snapshot>({
     artistName: "",
@@ -76,7 +81,10 @@ export default function SnapshotWizard() {
   const step = steps[stepIndex];
 
   useEffect(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+    const raw =
+      typeof window !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY)
+        : null;
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw);
@@ -94,19 +102,62 @@ export default function SnapshotWizard() {
     setData((prev) => ({ ...prev, [key]: value }));
   }
 
-  function save() {
+  function saveLocal() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 1200);
   }
 
+  async function saveToServer() {
+    setServerError(null);
+
+    const res = await fetch("/api/snapshot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      // Try to read json error, fallback to generic.
+      let msg = "Could not save snapshot to server.";
+      try {
+        const j = await res.json();
+        if (j?.error) msg = String(j.error);
+      } catch {
+        // ignore
+      }
+      throw new Error(msg);
+    }
+
+    return res.json();
+  }
+
   function next() {
-    save();
+    saveLocal();
     setStepIndex((i) => Math.min(i + 1, steps.length - 1));
   }
 
   function back() {
     setStepIndex((i) => Math.max(i - 1, 0));
+  }
+
+  async function submit() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setServerError(null);
+
+    try {
+      // keep local backup too
+      saveLocal();
+      await saveToServer();
+
+      // Go to summary page that reads from DB
+      router.push("/dashboard/snapshot/summary");
+    } catch (e: any) {
+      setServerError(e?.message ?? "Something went wrong saving your snapshot.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -170,13 +221,24 @@ export default function SnapshotWizard() {
             </div>
           ) : (
             <button
-              onClick={save}
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+              onClick={saveLocal}
+              disabled={isSubmitting}
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-40"
             >
               Save
             </button>
           )}
         </div>
+
+        {serverError ? (
+          <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+            <div className="font-semibold">Save failed</div>
+            <div className="mt-1 text-red-100/90">{serverError}</div>
+            <div className="mt-2 text-red-100/70">
+              Your draft is still in local storage. Try again when ready.
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6 grid gap-4">
           {step.id === "identity" && (
@@ -217,11 +279,37 @@ export default function SnapshotWizard() {
 
           {step.id === "links" && (
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Spotify link" value={data.spotify} onChange={(v) => update("spotify", v)} placeholder="https://..." />
-              <Field label="YouTube link" value={data.youtube} onChange={(v) => update("youtube", v)} placeholder="https://..." />
-              <Field label="Instagram" value={data.instagram} onChange={(v) => update("instagram", v)} placeholder="https://..." />
-              <Field label="TikTok" value={data.tiktok} onChange={(v) => update("tiktok", v)} placeholder="https://..." />
-              <Field className="md:col-span-2" label="Website / Link hub" value={data.website} onChange={(v) => update("website", v)} placeholder="https://..." />
+              <Field
+                label="Spotify link"
+                value={data.spotify}
+                onChange={(v) => update("spotify", v)}
+                placeholder="https://..."
+              />
+              <Field
+                label="YouTube link"
+                value={data.youtube}
+                onChange={(v) => update("youtube", v)}
+                placeholder="https://..."
+              />
+              <Field
+                label="Instagram"
+                value={data.instagram}
+                onChange={(v) => update("instagram", v)}
+                placeholder="https://..."
+              />
+              <Field
+                label="TikTok"
+                value={data.tiktok}
+                onChange={(v) => update("tiktok", v)}
+                placeholder="https://..."
+              />
+              <Field
+                className="md:col-span-2"
+                label="Website / Link hub"
+                value={data.website}
+                onChange={(v) => update("website", v)}
+                placeholder="https://..."
+              />
             </div>
           )}
 
@@ -308,7 +396,8 @@ export default function SnapshotWizard() {
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
                 <div className="font-semibold text-white/80">Next up:</div>
                 <div className="mt-1">
-                  After Snapshot, Chicago runs your <span className="text-white">Revenue Diagnostic</span> and
+                  After Snapshot, Chicago runs your{" "}
+                  <span className="text-white">Revenue Diagnostic</span> and
                   builds an offer + execution assets.
                 </div>
               </div>
@@ -320,7 +409,7 @@ export default function SnapshotWizard() {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={back}
-            disabled={stepIndex === 0}
+            disabled={stepIndex === 0 || isSubmitting}
             className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-40"
           >
             Back
@@ -329,19 +418,18 @@ export default function SnapshotWizard() {
           {stepIndex < steps.length - 1 ? (
             <button
               onClick={next}
-              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
+              disabled={isSubmitting}
+              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-40"
             >
               Save & Continue
             </button>
           ) : (
             <button
-              onClick={() => {
-                save();
-                alert("Snapshot saved. Next: Revenue Diagnostic (coming next).");
-              }}
-              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
+              onClick={submit}
+              disabled={isSubmitting}
+              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-40"
             >
-              Finish Snapshot
+              {isSubmitting ? "Saving..." : "Finish Snapshot"}
             </button>
           )}
         </div>
