@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import ChicagoRoadmapPanel from "./ChicagoRoadmapPanel";
 
 export default async function SnapshotSummaryPage() {
   const { userId } = await auth();
@@ -32,15 +33,30 @@ export default async function SnapshotSummaryPage() {
 
       <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
         <div className="grid gap-2 text-sm text-white/80">
-          <div><span className="text-white/50">Artist:</span> {snapshot.artistName}</div>
-          <div><span className="text-white/50">Area:</span> {snapshot.cityArea}</div>
-          <div><span className="text-white/50">Genre:</span> {snapshot.genre}</div>
-          <div><span className="text-white/50">Goal:</span> {snapshot.primaryGoal}</div>
+          <div>
+            <span className="text-white/50">Artist:</span> {snapshot.artistName}
+          </div>
+          <div>
+            <span className="text-white/50">City:</span> {snapshot.cityArea}
+          </div>
+          <div>
+            <span className="text-white/50">Genre:</span> {snapshot.genre}
+          </div>
+          <div>
+            <span className="text-white/50">Goal:</span> {snapshot.primaryGoal}
+          </div>
 
           <div className="mt-4 text-white/60">Revenue</div>
-          <div><span className="text-white/50">Streams:</span> {snapshot.currentIncomeStreams}</div>
-          <div><span className="text-white/50">Offer:</span> {snapshot.currentOffer}</div>
-          <div><span className="text-white/50">Price range:</span> {snapshot.priceRange}</div>
+          <div>
+            <span className="text-white/50">Streams:</span>{" "}
+            {snapshot.currentIncomeStreams}
+          </div>
+          <div>
+            <span className="text-white/50">Offer:</span> {snapshot.currentOffer}
+          </div>
+          <div>
+            <span className="text-white/50">Price range:</span> {snapshot.priceRange}
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -59,6 +75,9 @@ export default async function SnapshotSummaryPage() {
           </Link>
         </div>
       </div>
+
+      {/* ✅ NEW: Roadmap Action Engine */}
+      <ChicagoRoadmapPanel snapshot={snapshot} />
     </div>
   );
 }
