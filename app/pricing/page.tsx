@@ -11,14 +11,16 @@ type Tier = {
   monthlyLabel: string;
   lifetimeLabel: string;
   bullets: string[];
+  subtext?: string;
 };
 
 const tiers: Tier[] = [
   {
     name: "South Loop",
     plan: "SOUTH_LOOP",
-    monthlyLabel: "Start South Loop (Monthly)",
-    lifetimeLabel: "Get South Loop (Lifetime)",
+    monthlyLabel: "Start Monthly",
+    lifetimeLabel: "Get Lifetime",
+    subtext: "Best for getting your first offer live fast.",
     bullets: [
       "Creator Snapshot + Summary",
       "Revenue Diagnostic v1",
@@ -30,8 +32,9 @@ const tiers: Tier[] = [
     name: "River North",
     plan: "RIVER_NORTH",
     highlight: true,
-    monthlyLabel: "Start River North (Monthly)",
-    lifetimeLabel: "Get River North (Lifetime)",
+    monthlyLabel: "Start Monthly",
+    lifetimeLabel: "Get Lifetime",
+    subtext: "Best for consistent launches and stronger conversions.",
     bullets: [
       "Everything in South Loop",
       "Execution Assets (DMs, emails, rollout)",
@@ -42,8 +45,9 @@ const tiers: Tier[] = [
   {
     name: "The Loop",
     plan: "THE_LOOP",
-    monthlyLabel: "Start The Loop (Monthly)",
-    lifetimeLabel: "Get The Loop (Lifetime)",
+    monthlyLabel: "Start Monthly",
+    lifetimeLabel: "Get Lifetime",
+    subtext: "Best for power users and future upgrades.",
     bullets: [
       "Everything in River North",
       "Highest tier (future upgrades here)",
@@ -56,6 +60,13 @@ const tiers: Tier[] = [
 function TierCard({ tier }: { tier: Tier }) {
   const highlight = !!tier.highlight;
 
+  const primaryBtnClass = [
+    "inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold transition",
+    highlight
+      ? "bg-white text-black hover:bg-white/90"
+      : "border border-white/15 bg-white/5 text-white hover:bg-white/10",
+  ].join(" ");
+
   return (
     <div
       className={[
@@ -65,10 +76,16 @@ function TierCard({ tier }: { tier: Tier }) {
           : "border-white/12 bg-white/5",
       ].join(" ")}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">{tier.name}</h3>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-white">{tier.name}</h3>
+          {tier.subtext ? (
+            <p className="mt-1 text-sm text-white/60">{tier.subtext}</p>
+          ) : null}
+        </div>
+
         {highlight ? (
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
+          <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
             Most Popular
           </span>
         ) : null}
@@ -85,19 +102,11 @@ function TierCard({ tier }: { tier: Tier }) {
 
       <div className="mt-6 grid gap-2">
         <SignedOut>
-          <Link
-            href="/sign-up"
-            className={[
-              "inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold",
-              highlight
-                ? "bg-white text-black hover:bg-white/90"
-                : "border border-white/15 bg-white/5 text-white hover:bg-white/10",
-            ].join(" ")}
-          >
+          <Link href="/sign-up" className={primaryBtnClass}>
             Create account to start
           </Link>
           <div className="text-center text-xs text-white/50">
-            You’ll pick a plan after sign-up.
+            Sign up first, then choose your plan.
           </div>
         </SignedOut>
 
@@ -106,21 +115,16 @@ function TierCard({ tier }: { tier: Tier }) {
             plan={tier.plan}
             cadence="monthly"
             label={tier.monthlyLabel}
-            className={[
-              "inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold",
-              highlight
-                ? "bg-white text-black hover:bg-white/90"
-                : "border border-white/15 bg-white/5 text-white hover:bg-white/10",
-            ].join(" ")}
+            className={primaryBtnClass}
           />
           <CheckoutButton
             plan={tier.plan}
             cadence="lifetime"
             label={tier.lifetimeLabel}
-            className="inline-flex w-full justify-center rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 hover:bg-black/40"
+            className="inline-flex w-full justify-center rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 transition hover:bg-black/40"
           />
           <div className="text-center text-xs text-white/50">
-            Monthly = recurring. Lifetime = one-time.
+            Monthly is recurring. Lifetime is a one-time purchase.
           </div>
         </SignedIn>
       </div>
@@ -134,8 +138,8 @@ export default function PricingPage() {
       <div className="flex flex-col gap-3">
         <h1 className="text-3xl font-bold text-white">Pricing</h1>
         <p className="max-w-2xl text-white/70">
-          Pick a tier based on how aggressively you want TruthRadeo to generate and package your
-          revenue plan (Chicago Stage 1).
+          Choose the tier that matches how quickly you want to move from idea → offer → execution.
+          Built for Chicago Stage 1 creators.
         </p>
       </div>
 
@@ -145,12 +149,21 @@ export default function PricingPage() {
         ))}
       </div>
 
-      <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-        <p className="font-semibold text-white">Notes</p>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Checkout requires Stripe price IDs in env vars.</li>
-          <li>Entitlements are granted by webhook events (production-grade flow).</li>
-        </ul>
+      <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 md:flex-row md:items-center">
+        <div>
+          <p className="text-sm font-semibold text-white">Need help choosing?</p>
+          <p className="mt-1 text-sm text-white/70">
+            Start with <span className="text-white">South Loop</span> if you’re launching your first
+            offer. Choose <span className="text-white">River North</span> if you want the execution
+            assets to move faster.
+          </p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="inline-flex rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 transition hover:bg-black/40"
+        >
+          Go to Dashboard
+        </Link>
       </div>
     </main>
   );
