@@ -87,3 +87,33 @@ model OfferBlueprint {
 
   @@index([userId, createdAt])
 }
+
+enum Plan {
+  FREE
+  SOUTH_LOOP
+  RIVER_NORTH
+  THE_LOOP
+}
+
+model Subscription {
+  id String @id @default(cuid())
+
+  userId String @unique
+  plan   Plan   @default(FREE)
+
+  // Stripe identifiers
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  // Status + timing (for recurring)
+  status           String @default("inactive") // "active" | "trialing" | "past_due" | "canceled" | "inactive"
+  currentPeriodEnd DateTime?
+
+  // Lifetime flag (one-time purchase)
+  isLifetime Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plan, status])
+}
