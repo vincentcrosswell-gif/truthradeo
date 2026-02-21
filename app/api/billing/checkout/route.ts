@@ -3,14 +3,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { priceIdFor } from "@/lib/billing/prices";
+
+// ✅ FIX: match your actual filename: lib/billing/price.ts
+import { priceIdFor } from "@/lib/billing/price";
+
 import type { Plan as AppPlan, Cadence } from "@/lib/billing/plans";
 import { Plan as PrismaPlan } from "@prisma/client";
 
 export const runtime = "nodejs";
 
 function toPrismaPlan(plan: AppPlan): PrismaPlan {
-  // ✅ Fix: Prisma expects its enum type, not arbitrary string
   switch (plan) {
     case "SOUTH_LOOP":
       return PrismaPlan.SOUTH_LOOP;
@@ -25,9 +27,7 @@ function toPrismaPlan(plan: AppPlan): PrismaPlan {
 
 export async function POST(req: Request) {
   const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as
     | { plan?: AppPlan; cadence?: Cadence }
@@ -42,7 +42,6 @@ export async function POST(req: Request) {
 
   const priceId = priceIdFor(plan, cadence);
 
-  // Ensure a Subscription row + Stripe customer
   const existing = await db.subscription.findUnique({ where: { userId } });
 
   let stripeCustomerId = existing?.stripeCustomerId ?? null;
@@ -67,7 +66,7 @@ export async function POST(req: Request) {
   }
 
   const isLifetime = cadence === "lifetime";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://truthradeo.com";
 
   const session = await stripe.checkout.sessions.create({
     mode: isLifetime ? "payment" : "subscription",
@@ -76,20 +75,10 @@ export async function POST(req: Request) {
     allow_promotion_codes: true,
     success_url: `${appUrl}/dashboard?checkout=success`,
     cancel_url: `${appUrl}/pricing?checkout=cancel`,
-    metadata: {
-      clerkUserId: userId,
-      plan,
-      cadence,
-    },
+    metadata: { clerkUserId: userId, plan, cadence },
     subscription_data: isLifetime
       ? undefined
-      : {
-          metadata: {
-            clerkUserId: userId,
-            plan,
-            cadence,
-          },
-        },
+      : { metadata: { clerkUserId: userId, plan, cadence } },
   });
 
   return NextResponse.json({ url: session.url });

@@ -1,4 +1,4 @@
-// lib/billing/prices.ts
+// lib/billing/price.ts
 import type { Plan, Cadence } from "./plans";
 
 function must(name: string) {
