@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import SnapshotWizard from "./snapshot/SnapshotWizard";
 import ChicagoPulsePanel from "./ChicagoPulsePanel";
+import DailyNudgePanel from "./DailyNudgePanel";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -27,7 +28,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ✅ NEW: Chicago Pulse Panel */}
+      {/* ✅ NEW: Daily Nudge (DAU driver) */}
+      <DailyNudgePanel />
+
+      {/* ✅ Chicago Pulse Panel */}
       <ChicagoPulsePanel />
 
       <SnapshotWizard />

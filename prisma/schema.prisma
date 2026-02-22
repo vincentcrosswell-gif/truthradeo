@@ -38,7 +38,6 @@ model CreatorSnapshot {
 
   biggestBlocker String @default("")
 
-  // ✅ Opposite relation for DiagnosticReport.snapshot
   diagnosticReports DiagnosticReport[]
 }
 
@@ -47,18 +46,15 @@ model DiagnosticReport {
   userId    String
   createdAt DateTime @default(now())
 
-  // link to snapshot if you want traceability
   snapshotId String?
   snapshot   CreatorSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
 
-  // scores (0-100)
   monetizationScore Int
   audienceScore     Int
   offerScore        Int
   momentumScore     Int
   clarityScore      Int
 
-  // main outputs
   topMovesJson Json
   notesJson    Json
 
@@ -71,13 +67,11 @@ model OfferBlueprint {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Inputs
-  lane     String // "service" | "digital" | "membership" | "live" | "hybrid"
+  lane     String
   goal     String @default("")
   audience String @default("")
   vibe     String @default("")
 
-  // Outputs (saved blueprint)
   title        String @default("")
   promise      String @default("")
   pricing      Json
@@ -85,8 +79,8 @@ model OfferBlueprint {
   funnel       Json
   scripts      Json
 
-  // Iteration + optimization loop (Stage 1 Chicago)
   executionRuns ExecutionRun[]
+  dailyCheckIns OfferDailyCheckIn[]
 
   @@index([userId, createdAt])
 }
@@ -97,31 +91,59 @@ model ExecutionRun {
   offerId   String
   createdAt DateTime @default(now())
 
-  // Where you ran it
-  channel String @default("") // "instagram" | "tiktok" | "email" | "dm" | "live" | "ads" | "other"
+  channel String @default("")
 
-  // What you did
-  outreachCount Int @default(0) // DMs sent / emails sent / convos started
-  leadsCount    Int @default(0) // people who raised hand / replied / opted-in
-  callsBooked   Int @default(0) // consults booked
-  salesCount    Int @default(0) // closed deals
+  outreachCount Int @default(0)
+  leadsCount    Int @default(0)
+  callsBooked   Int @default(0)
+  salesCount    Int @default(0)
 
-  // Money
   revenueCents Int @default(0)
 
-  // Qualitative notes
   whatWorked String @default("")
   whatDidnt  String @default("")
   blockers   String @default("")
   notes      String @default("")
 
-  // Engine output (stored so you can compare iterations over time)
   iterationPlanJson Json
 
   offer OfferBlueprint @relation(fields: [offerId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([offerId, createdAt])
+}
+
+model OfferDailyCheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  offerId   String
+
+  // “Day bucket” normalized to the start of the day in America/Chicago (server enforces)
+  day       DateTime
+
+  // 1–5
+  energy    Int @default(3)
+
+  // How much did you actually execute today?
+  minutesExecuted Int @default(0)
+
+  // One key metric you care about today
+  keyMetric      String @default("outreach") // "outreach" | "leads" | "sales" | "revenue" | "content" | "other"
+  keyMetricValue Int    @default(0)
+
+  // Reflection (tiny, not a journal)
+  win      String @default("")
+  blocker  String @default("")
+  nextStep String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  offer OfferBlueprint @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, day])
+  @@index([userId, day])
+  @@index([offerId, day])
 }
 
 enum Plan {
@@ -137,15 +159,12 @@ model Subscription {
   userId String @unique
   plan   Plan   @default(FREE)
 
-  // Stripe identifiers
   stripeCustomerId     String? @unique
   stripeSubscriptionId String? @unique
 
-  // Status + timing (for recurring)
-  status           String @default("inactive") // "active" | "trialing" | "past_due" | "canceled" | "inactive"
+  status           String @default("inactive")
   currentPeriodEnd DateTime?
 
-  // Lifetime flag (one-time purchase)
   isLifetime Boolean @default(false)
 
   createdAt DateTime @default(now())
