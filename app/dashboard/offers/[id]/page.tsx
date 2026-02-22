@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import CopyBlock from "./CopyBlock";
+import ExecutionRunsPanel from "./ExecutionRunsPanel";
 
 export default async function OfferPage({
   params,
@@ -25,6 +26,27 @@ export default async function OfferPage({
     : [];
   const funnel = Array.isArray(offer.funnel) ? (offer.funnel as any[]) : [];
   const scripts = (offer.scripts as any) || {};
+
+  const runs = await db.executionRun.findMany({
+    where: { userId, offerId: offer.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const runsDTO = runs.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt.toISOString(),
+    channel: r.channel,
+    outreachCount: r.outreachCount,
+    leadsCount: r.leadsCount,
+    callsBooked: r.callsBooked,
+    salesCount: r.salesCount,
+    revenueCents: r.revenueCents,
+    whatWorked: r.whatWorked,
+    whatDidnt: r.whatDidnt,
+    blockers: r.blockers,
+    notes: r.notes,
+    iterationPlanJson: r.iterationPlanJson as any,
+  }));
 
   return (
     <div className="grid gap-6 p-6">
@@ -73,6 +95,9 @@ export default async function OfferPage({
           ) : null}
         </div>
       </div>
+
+      {/* Iteration + Optimization */}
+      <ExecutionRunsPanel offerId={offer.id} initialRuns={runsDTO as any} />
 
       {/* Pricing ladder */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">

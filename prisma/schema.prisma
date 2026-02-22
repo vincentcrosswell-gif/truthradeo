@@ -85,7 +85,43 @@ model OfferBlueprint {
   funnel       Json
   scripts      Json
 
+  // Iteration + optimization loop (Stage 1 Chicago)
+  executionRuns ExecutionRun[]
+
   @@index([userId, createdAt])
+}
+
+model ExecutionRun {
+  id        String   @id @default(cuid())
+  userId    String
+  offerId   String
+  createdAt DateTime @default(now())
+
+  // Where you ran it
+  channel String @default("") // "instagram" | "tiktok" | "email" | "dm" | "live" | "ads" | "other"
+
+  // What you did
+  outreachCount Int @default(0) // DMs sent / emails sent / convos started
+  leadsCount    Int @default(0) // people who raised hand / replied / opted-in
+  callsBooked   Int @default(0) // consults booked
+  salesCount    Int @default(0) // closed deals
+
+  // Money
+  revenueCents Int @default(0)
+
+  // Qualitative notes
+  whatWorked String @default("")
+  whatDidnt  String @default("")
+  blockers   String @default("")
+  notes      String @default("")
+
+  // Engine output (stored so you can compare iterations over time)
+  iterationPlanJson Json
+
+  offer OfferBlueprint @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([offerId, createdAt])
 }
 
 enum Plan {
