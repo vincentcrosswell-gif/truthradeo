@@ -2,19 +2,24 @@
 
 /*
   TruthRadeo global styles
-  - Tailwind v4 base via @import
-  - Fonts from app/layout.tsx (next/font/google)
-  - Extra keyframes + utility classes used by the landing page
+  Tailwind v4 + landing stage FX + scene mode (scroll-snap) + genre/mood reskins.
 */
 
 :root {
   --background: #07070a;
   --foreground: #f4f4f5;
 
+  /* injected by next/font via body class (inherited) */
   --font-sans: var(--tr-font-sans);
   --font-graffiti: var(--tr-font-graffiti);
   --font-mono: var(--tr-font-mono);
   --font-glitch: var(--tr-font-glitch);
+
+  /* extra injected */
+  --font-orbitron: var(--tr-font-orbitron);
+  --font-playfair: var(--tr-font-playfair);
+  --font-blackops: var(--tr-font-blackops);
+  --font-marker: var(--tr-font-marker);
 
   /* stage fx vars (set by JS) */
   --tr-scroll: 0;
@@ -24,6 +29,24 @@
   /* pointer halo */
   --tr-cx: 0.5;
   --tr-cy: 0.5;
+
+  /* scene engine vars (set by JS) */
+  --tr-scene: 0;        /* active scene index */
+  --tr-sceneProg: 0;    /* 0..1 progress to next scene */
+  --tr-curtain: 0;      /* 0..1 curtain intensity (higher near boundaries) */
+
+  /* genre/mood variables (overridden per theme inline style) */
+  --tr-font-display: var(--font-graffiti);
+  --tr-font-head: var(--font-sans);
+  --tr-font-body: var(--font-sans);
+
+  --tr-r-hero: 2.75rem;
+  --tr-r-card: 2.25rem;
+  --tr-r-chip: 1.25rem;
+
+  --tr-border-style: solid;
+  --tr-grain: 0.08;
+  --tr-angle: 115deg;
 }
 
 html,
@@ -34,8 +57,27 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+  font-family: var(--tr-font-body), ui-sans-serif, system-ui, -apple-system,
     Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* ---------------------------
+   Scene Mode (scroll-snap)
+--------------------------- */
+
+html[data-scene="1"] {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 92px;
+  scroll-behavior: smooth;
+}
+html[data-scene="1"][data-snap="hard"] {
+  scroll-snap-type: y mandatory;
+}
+
+section[data-scene] {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  scroll-margin-top: 92px;
 }
 
 /* ---------------------------
@@ -48,9 +90,7 @@ body {
   100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes tr_spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes tr_spin { to { transform: rotate(360deg); } }
 
 @keyframes tr_shift {
   0% { transform: translateX(-30%); }
@@ -93,36 +133,53 @@ body {
   100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes tr_drift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(6px, -8px, 0) scale(1.03); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
-
-@keyframes tr_confetti {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0.0; }
-  15% { opacity: 0.35; }
-  100% { transform: translateY(120px) rotate(85deg); opacity: 0; }
-}
-
 /* ---------------------------
-   Typography helpers
+   Typography + utilities
 --------------------------- */
 
-.tr-graffiti {
-  font-family: var(--font-graffiti), var(--font-sans), system-ui;
-  letter-spacing: 0.02em;
+.tr-display {
+  font-family: var(--tr-font-display), var(--font-sans), system-ui;
+  letter-spacing: 0.01em;
 }
-
-.tr-glitchfont {
-  font-family: var(--font-glitch), var(--font-sans), system-ui;
-  letter-spacing: 0.02em;
+.tr-head {
+  font-family: var(--tr-font-head), var(--font-sans), system-ui;
+}
+.tr-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .tr-marquee { animation: tr_marquee 18s linear infinite; }
 
+.tr-btn { transform: translateZ(0); }
+.tr-btn:active { transform: translateY(1px); }
+
+.tr-card { transform: translateZ(0); }
+.tr-tilt {
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.tr-tilt:hover {
+  transform: translateY(-2px) rotate(-0.15deg);
+  border-color: rgba(255,255,255,0.22);
+}
+
+.tr-border { border-style: var(--tr-border-style) !important; }
+
+/* sheen */
+.tr-sheen { position: relative; overflow: hidden; }
+.tr-sheen::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 45%;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  transform: rotate(12deg);
+  animation: tr_sheen 3.2s ease-in-out infinite;
+}
+
 /* ---------------------------
-   Noise + scanlines
+   Noise + scanlines (grain intensity adjustable by --tr-grain)
 --------------------------- */
 
 .tr-noise { position: relative; }
@@ -131,7 +188,7 @@ body {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  opacity: 0.08;
+  opacity: var(--tr-grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
   animation: tr_noise 1.25s steps(2) infinite;
@@ -159,14 +216,28 @@ body {
       color-mix(in oklab, var(--tr-a3) 18%, transparent),
       transparent 60%);
   filter:
-    saturate(calc(1 + var(--tr-scroll) * 0.6))
-    hue-rotate(calc(var(--tr-scroll) * 50deg));
-  opacity: calc(0.55 + var(--tr-scroll) * 0.22);
+    saturate(calc(1 + var(--tr-scroll) * 0.7))
+    hue-rotate(calc(var(--tr-scroll) * 60deg));
+  opacity: calc(0.52 + var(--tr-scroll) * 0.30);
   transform: translate3d(
     calc((var(--tr-mx) - 0.5) * -18px),
     calc((var(--tr-my) - 0.5) * -18px),
     0
   );
+}
+
+/* diagonal “venue poster” stripes that shift per scene */
+.tr-scenestripes {
+  background:
+    repeating-linear-gradient(
+      var(--tr-angle),
+      rgba(255,255,255,0.10) 0px,
+      rgba(255,255,255,0.10) 1px,
+      transparent 1px,
+      transparent 18px
+    );
+  opacity: calc(0.04 + (var(--tr-sceneProg) * 0.06));
+  transform: translate3d(0, calc(var(--tr-scene) * -6px), 0);
 }
 
 /* pointer halo */
@@ -195,41 +266,48 @@ body {
 }
 
 /* ---------------------------
-   Buttons / cards / micro-interactions
+   Stage “curtains” transition overlay (scene boundaries)
 --------------------------- */
 
-.tr-btn { transform: translateZ(0); }
-.tr-btn:active { transform: translateY(1px); }
-
-.tr-card { transform: translateZ(0); }
-.tr-tilt {
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-}
-.tr-tilt:hover {
-  transform: translateY(-2px) rotate(-0.15deg);
-  border-color: rgba(255,255,255,0.22);
+.tr-curtains {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  opacity: 0.55;
+  mix-blend-mode: screen;
 }
 
-.tr-sheen { position: relative; overflow: hidden; }
-.tr-sheen::after {
+.tr-curtains::before,
+.tr-curtains::after {
   content: "";
   position: absolute;
-  top: -20%;
-  left: -60%;
-  width: 45%;
-  height: 160%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-  transform: rotate(12deg);
-  animation: tr_sheen 3.2s ease-in-out infinite;
+  top: 0;
+  bottom: 0;
+  width: 52vw;
+  background:
+    radial-gradient(120% 70% at 70% 50%,
+      color-mix(in oklab, var(--tr-a2) 22%, transparent),
+      rgba(0,0,0,0.85) 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.28));
+  filter: saturate(1.3);
+  opacity: calc(0.18 + var(--tr-curtain) * 0.62);
+  transition: opacity 120ms linear;
 }
 
-/* bass pulse when pads hit */
-:root[data-bass="1"] .tr-stagebg {
-  filter: saturate(1.9) hue-rotate(calc(var(--tr-scroll) * 60deg));
-  opacity: 0.9;
+.tr-curtains::before {
+  left: 0;
+  transform: translateX(calc(-100% + (var(--tr-curtain) * 100%)));
+}
+.tr-curtains::after {
+  right: 0;
+  transform: translateX(calc(100% - (var(--tr-curtain) * 100%)));
 }
 
-/* flip cards */
+/* ---------------------------
+   Flip cards
+--------------------------- */
+
 .tr-flipgroup { perspective: 1200px; }
 .tr-flipcard,
 .tr-flipback {
@@ -237,38 +315,11 @@ body {
   backface-visibility: hidden;
   transition: transform 520ms cubic-bezier(.2,.8,.2,1);
 }
-.tr-flipback {
-  transform: rotateY(180deg);
-}
+.tr-flipback { transform: rotateY(180deg); }
 .tr-flipgroup:hover .tr-flipcard,
-.tr-flipgroup:active .tr-flipcard {
-  transform: rotateY(180deg);
-}
+.tr-flipgroup:active .tr-flipcard { transform: rotateY(180deg); }
 .tr-flipgroup:hover .tr-flipback,
-.tr-flipgroup:active .tr-flipback {
-  transform: rotateY(360deg);
-}
-
-/* pads */
-.tr-pad:active { transform: translateY(1px) scale(0.99); }
-
-/* confetti on CTA */
-.tr-confetti { position: relative; overflow: hidden; }
-.tr-confetti::before,
-.tr-confetti::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  top: -30px;
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  opacity: 0;
-  background: color-mix(in oklab, var(--tr-a1) 70%, white);
-  animation: tr_confetti 2.1s ease-out infinite;
-}
-.tr-confetti::before { left: 18%; animation-delay: 0.1s; }
-.tr-confetti::after  { left: 72%; background: color-mix(in oklab, var(--tr-a2) 70%, white); animation-delay: 0.6s; }
+.tr-flipgroup:active .tr-flipback { transform: rotateY(360deg); }
 
 /* ---------------------------
    Scroll reveal
@@ -298,11 +349,14 @@ body {
 --------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
+  html[data-scene="1"] { scroll-snap-type: none !important; scroll-behavior: auto !important; }
+
   .tr-marquee,
   .tr-sheen::after,
   .tr-noise::before {
     animation: none !important;
   }
+
   .tr-btn,
   .tr-card,
   .tr-tilt,
