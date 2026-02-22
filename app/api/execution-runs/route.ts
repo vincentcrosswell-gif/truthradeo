@@ -3,6 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { buildChicagoIterationPlan } from "@/lib/iteration/chicago";
 
+// Ensure this route is never cached by Next
+export const dynamic = "force-dynamic";
+
 function intOr0(v: unknown) {
   const n = typeof v === "string" ? Number(v) : (v as number);
   if (!Number.isFinite(n)) return 0;
@@ -13,20 +16,26 @@ function str(v: unknown) {
   return typeof v === "string" ? v : "";
 }
 
+function noStoreJson(data: any, init?: { status?: number }) {
+  const res = NextResponse.json(data, { status: init?.status ?? 200 });
+  res.headers.set("Cache-Control", "no-store, max-age=0");
+  return res;
+}
+
 export async function GET(req: Request) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) return noStoreJson({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const offerId = searchParams.get("offerId") || "";
 
   if (!offerId) {
-    return NextResponse.json({ error: "offerId is required" }, { status: 400 });
+    return noStoreJson({ error: "offerId is required" }, { status: 400 });
   }
 
   const offer = await db.offerBlueprint.findUnique({ where: { id: offerId } });
   if (!offer || offer.userId !== userId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return noStoreJson({ error: "Not found" }, { status: 404 });
   }
 
   const runs = await db.executionRun.findMany({
@@ -34,23 +43,23 @@ export async function GET(req: Request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ runs });
+  return noStoreJson({ runs });
 }
 
 export async function POST(req: Request) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) return noStoreJson({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
 
   const offerId = str(body?.offerId);
   if (!offerId) {
-    return NextResponse.json({ error: "offerId is required" }, { status: 400 });
+    return noStoreJson({ error: "offerId is required" }, { status: 400 });
   }
 
   const offer = await db.offerBlueprint.findUnique({ where: { id: offerId } });
   if (!offer || offer.userId !== userId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return noStoreJson({ error: "Not found" }, { status: 404 });
   }
 
   const snapshot = await db.creatorSnapshot.findUnique({ where: { userId } });
@@ -109,5 +118,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({ run: created });
+  return noStoreJson({ run: created });
 }

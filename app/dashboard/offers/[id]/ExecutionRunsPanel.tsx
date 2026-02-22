@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 type IterationPlan = {
   headline: string;
@@ -62,7 +61,6 @@ export default function ExecutionRunsPanel({
   offerId: string;
   initialRuns: ExecutionRunDTO[];
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [channel, setChannel] = useState("dm");
@@ -80,7 +78,42 @@ export default function ExecutionRunsPanel({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const runs = initialRuns;
+  // ✅ Persist history in-state and refresh it from the API when the page mounts.
+  const [runs, setRuns] = useState<ExecutionRunDTO[]>(initialRuns || []);
+  const [isLoadingRuns, setIsLoadingRuns] = useState(false);
+
+  async function loadRuns() {
+    setIsLoadingRuns(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/execution-runs?offerId=${offerId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to load runs");
+      }
+
+      const data = await res.json();
+      setRuns((data?.runs || []).map((r: any) => ({
+        ...r,
+        createdAt: typeof r.createdAt === "string" ? r.createdAt : new Date(r.createdAt).toISOString(),
+      })));
+    } catch (e: any) {
+      setError(e?.message || "Something went wrong loading history");
+    } finally {
+      setIsLoadingRuns(false);
+    }
+  }
+
+  // ✅ On mount + whenever offerId changes, pull fresh history.
+  useEffect(() => {
+    loadRuns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offerId]);
 
   const quickRead = useMemo(() => {
     if (!runs.length) return null;
@@ -117,6 +150,7 @@ export default function ExecutionRunsPanel({
       const res = await fetch("/api/execution-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify(payload),
       });
 
@@ -127,15 +161,16 @@ export default function ExecutionRunsPanel({
 
       setSaved(true);
 
-      // Reset the most important numeric inputs so logging stays fast.
+      // Reset numeric inputs for fast repeat logging.
       setOutreachCount(0);
       setLeadsCount(0);
       setCallsBooked(0);
       setSalesCount(0);
       setRevenueDollars(0);
 
-      startTransition(() => {
-        router.refresh();
+      // ✅ Immediately refresh history without relying on Next router cache.
+      startTransition(async () => {
+        await loadRuns();
       });
     } catch (e: any) {
       setError(e?.message || "Something went wrong");
@@ -316,7 +351,16 @@ export default function ExecutionRunsPanel({
 
       {/* History */}
       <div className="mt-6">
-        <h3 className="text-sm font-semibold text-white/90">Run history</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white/90">Run history</h3>
+          <button
+            onClick={loadRuns}
+            className="text-xs text-white/60 hover:text-white"
+          >
+            {isLoadingRuns ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+
         <div className="mt-3 grid gap-3">
           {runs.length ? (
             runs.map((r) => {
@@ -459,7 +503,7 @@ export default function ExecutionRunsPanel({
             })
           ) : (
             <div className="text-sm text-white/60">
-              No runs yet. Log your first real-world attempt above.
+              {isLoadingRuns ? "Loading history…" : "No runs yet. Log your first real-world attempt above."}
             </div>
           )}
         </div>
