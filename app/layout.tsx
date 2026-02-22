@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Bangers, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Bangers, Space_Grotesk, JetBrains_Mono, Rubik_Glitch } from "next/font/google";
 import "./globals.css";
 
 const sans = Space_Grotesk({
@@ -22,6 +22,13 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
+const glitch = Rubik_Glitch({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--tr-font-glitch",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "TruthRadeo",
   description: "TruthRadeo",
@@ -35,7 +42,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${sans.variable} ${graffiti.variable} ${mono.variable}`}>
+        <body
+          className={`${sans.variable} ${graffiti.variable} ${mono.variable} ${glitch.variable}`}
+        >
           {children}
         </body>
       </html>

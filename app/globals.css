@@ -4,18 +4,26 @@
   TruthRadeo global styles
   - Tailwind v4 base via @import
   - Fonts from app/layout.tsx (next/font/google)
-  - Extra keyframes used by the landing page
+  - Extra keyframes + utility classes used by the landing page
 */
 
 :root {
-  /* app theme (dark-first) */
   --background: #07070a;
   --foreground: #f4f4f5;
 
-  /* fonts injected by next/font */
   --font-sans: var(--tr-font-sans);
   --font-graffiti: var(--tr-font-graffiti);
   --font-mono: var(--tr-font-mono);
+  --font-glitch: var(--tr-font-glitch);
+
+  /* stage fx vars (set by JS) */
+  --tr-scroll: 0;
+  --tr-mx: 0.5;
+  --tr-my: 0.35;
+
+  /* pointer halo */
+  --tr-cx: 0.5;
+  --tr-cy: 0.5;
 }
 
 html,
@@ -31,7 +39,7 @@ body {
 }
 
 /* ---------------------------
-   Landing motion primitives
+   Motion primitives
 --------------------------- */
 
 @keyframes tr_float {
@@ -40,20 +48,8 @@ body {
   100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes tr_wobble {
-  0% { transform: rotate(-1deg) translateY(0); }
-  50% { transform: rotate(1deg) translateY(-2px); }
-  100% { transform: rotate(-1deg) translateY(0); }
-}
-
 @keyframes tr_spin {
   to { transform: rotate(360deg); }
-}
-
-@keyframes tr_pulse {
-  0% { opacity: 0.35; transform: scale(0.98); }
-  50% { opacity: 0.8; transform: scale(1.02); }
-  100% { opacity: 0.35; transform: scale(0.98); }
 }
 
 @keyframes tr_shift {
@@ -83,7 +79,6 @@ body {
   100% { opacity: 0.55; }
 }
 
-/* animated noise overlay (cheap grain) */
 @keyframes tr_noise {
   0% { transform: translate3d(0, 0, 0); }
   10% { transform: translate3d(-2%, 1%, 0); }
@@ -98,8 +93,20 @@ body {
   100% { transform: translate3d(0, 0, 0); }
 }
 
+@keyframes tr_drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6px, -8px, 0) scale(1.03); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes tr_confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.0; }
+  15% { opacity: 0.35; }
+  100% { transform: translateY(120px) rotate(85deg); opacity: 0; }
+}
+
 /* ---------------------------
-   Utility classes
+   Typography helpers
 --------------------------- */
 
 .tr-graffiti {
@@ -107,36 +114,18 @@ body {
   letter-spacing: 0.02em;
 }
 
-.tr-marquee {
-  animation: tr_marquee 18s linear infinite;
+.tr-glitchfont {
+  font-family: var(--font-glitch), var(--font-sans), system-ui;
+  letter-spacing: 0.02em;
 }
 
-.tr-sheen {
-  position: relative;
-  overflow: hidden;
-}
+.tr-marquee { animation: tr_marquee 18s linear infinite; }
 
-.tr-sheen::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  left: -60%;
-  width: 45%;
-  height: 160%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.12),
-    transparent
-  );
-  transform: rotate(12deg);
-  animation: tr_sheen 3.2s ease-in-out infinite;
-}
+/* ---------------------------
+   Noise + scanlines
+--------------------------- */
 
-.tr-noise {
-  position: relative;
-}
-
+.tr-noise { position: relative; }
 .tr-noise::before {
   content: "";
   pointer-events: none;
@@ -148,11 +137,176 @@ body {
   animation: tr_noise 1.25s steps(2) infinite;
 }
 
-/* Respect reduced motion */
+.tr-scanlines {
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 100% 4px;
+  opacity: 0.06;
+}
+
+/* ---------------------------
+   Scroll-reactive stage lighting
+--------------------------- */
+
+.tr-stagebg {
+  background:
+    radial-gradient(70% 70% at 15% 15%,
+      color-mix(in oklab, var(--tr-a1) 26%, transparent),
+      transparent 60%),
+    radial-gradient(70% 70% at 85% 10%,
+      color-mix(in oklab, var(--tr-a2) 24%, transparent),
+      transparent 55%),
+    radial-gradient(70% 70% at 50% 90%,
+      color-mix(in oklab, var(--tr-a3) 18%, transparent),
+      transparent 60%);
+  filter:
+    saturate(calc(1 + var(--tr-scroll) * 0.6))
+    hue-rotate(calc(var(--tr-scroll) * 50deg));
+  opacity: calc(0.55 + var(--tr-scroll) * 0.22);
+  transform: translate3d(
+    calc((var(--tr-mx) - 0.5) * -18px),
+    calc((var(--tr-my) - 0.5) * -18px),
+    0
+  );
+}
+
+/* pointer halo */
+.tr-cursorhalo {
+  background:
+    radial-gradient(420px 320px at calc(var(--tr-cx) * 100%) calc(var(--tr-cy) * 100%),
+      rgba(255,255,255,0.07), transparent 60%),
+    radial-gradient(520px 380px at calc((1 - var(--tr-cx)) * 100%) calc((0.9 - var(--tr-cy)) * 100%),
+      rgba(255,255,255,0.05), transparent 60%);
+  opacity: 0.55;
+}
+
+/* hero parallax glow */
+.tr-hero { --mx: 0.5; --my: 0.35; position: relative; }
+.tr-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background:
+    radial-gradient(420px 320px at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(520px 380px at calc((1 - var(--mx)) * 100%) calc((0.9 - var(--my)) * 100%),
+      rgba(255, 255, 255, 0.06), transparent 60%);
+}
+
+/* ---------------------------
+   Buttons / cards / micro-interactions
+--------------------------- */
+
+.tr-btn { transform: translateZ(0); }
+.tr-btn:active { transform: translateY(1px); }
+
+.tr-card { transform: translateZ(0); }
+.tr-tilt {
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.tr-tilt:hover {
+  transform: translateY(-2px) rotate(-0.15deg);
+  border-color: rgba(255,255,255,0.22);
+}
+
+.tr-sheen { position: relative; overflow: hidden; }
+.tr-sheen::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 45%;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  transform: rotate(12deg);
+  animation: tr_sheen 3.2s ease-in-out infinite;
+}
+
+/* bass pulse when pads hit */
+:root[data-bass="1"] .tr-stagebg {
+  filter: saturate(1.9) hue-rotate(calc(var(--tr-scroll) * 60deg));
+  opacity: 0.9;
+}
+
+/* flip cards */
+.tr-flipgroup { perspective: 1200px; }
+.tr-flipcard,
+.tr-flipback {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 520ms cubic-bezier(.2,.8,.2,1);
+}
+.tr-flipback {
+  transform: rotateY(180deg);
+}
+.tr-flipgroup:hover .tr-flipcard,
+.tr-flipgroup:active .tr-flipcard {
+  transform: rotateY(180deg);
+}
+.tr-flipgroup:hover .tr-flipback,
+.tr-flipgroup:active .tr-flipback {
+  transform: rotateY(360deg);
+}
+
+/* pads */
+.tr-pad:active { transform: translateY(1px) scale(0.99); }
+
+/* confetti on CTA */
+.tr-confetti { position: relative; overflow: hidden; }
+.tr-confetti::before,
+.tr-confetti::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: -30px;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  opacity: 0;
+  background: color-mix(in oklab, var(--tr-a1) 70%, white);
+  animation: tr_confetti 2.1s ease-out infinite;
+}
+.tr-confetti::before { left: 18%; animation-delay: 0.1s; }
+.tr-confetti::after  { left: 72%; background: color-mix(in oklab, var(--tr-a2) 70%, white); animation-delay: 0.6s; }
+
+/* ---------------------------
+   Scroll reveal
+--------------------------- */
+
+.tr-reveal {
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  filter: blur(10px);
+  transition: opacity 520ms ease, transform 520ms ease, filter 520ms ease;
+  will-change: opacity, transform, filter;
+}
+.tr-reveal[data-inview="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+.tr-reveal--off {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+/* ---------------------------
+   Reduced motion
+--------------------------- */
+
 @media (prefers-reduced-motion: reduce) {
   .tr-marquee,
   .tr-sheen::after,
   .tr-noise::before {
     animation: none !important;
+  }
+  .tr-btn,
+  .tr-card,
+  .tr-tilt,
+  .tr-reveal {
+    transition: none !important;
   }
 }
