@@ -1,75 +1,158 @@
 @import "tailwindcss";
 
+/*
+  TruthRadeo global styles
+  - Tailwind v4 base via @import
+  - Fonts from app/layout.tsx (next/font/google)
+  - Extra keyframes used by the landing page
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* app theme (dark-first) */
+  --background: #07070a;
+  --foreground: #f4f4f5;
+
+  /* fonts injected by next/font */
+  --font-sans: var(--tr-font-sans);
+  --font-graffiti: var(--tr-font-graffiti);
+  --font-mono: var(--tr-font-mono);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html,
+body {
+  height: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-/* keep your base defaults */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+    Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* ✅ TruthRadeo landing animation (used by app/page.tsx marquee) */
+/* ---------------------------
+   Landing motion primitives
+--------------------------- */
+
+@keyframes tr_float {
+  0% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes tr_wobble {
+  0% { transform: rotate(-1deg) translateY(0); }
+  50% { transform: rotate(1deg) translateY(-2px); }
+  100% { transform: rotate(-1deg) translateY(0); }
+}
+
+@keyframes tr_spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tr_pulse {
+  0% { opacity: 0.35; transform: scale(0.98); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+  100% { opacity: 0.35; transform: scale(0.98); }
+}
+
+@keyframes tr_shift {
+  0% { transform: translateX(-30%); }
+  50% { transform: translateX(30%); }
+  100% { transform: translateX(-30%); }
+}
+
 @keyframes tr_marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-/* ✅ Chicago Pulse animations */
-@keyframes tr_shimmer {
-  0% { transform: translateX(-60%); opacity: 0.35; }
+@keyframes tr_sheen {
+  0% { transform: translateX(-80%) rotate(12deg); opacity: 0; }
+  20% { opacity: 0.35; }
   50% { opacity: 0.55; }
-  100% { transform: translateX(60%); opacity: 0.35; }
+  100% { transform: translateX(120%) rotate(12deg); opacity: 0; }
 }
 
-@keyframes tr_fill {
-  from { width: 0%; }
-  to { width: var(--w); }
+@keyframes tr_flicker {
+  0% { opacity: 0.55; }
+  3% { opacity: 0.15; }
+  6% { opacity: 0.75; }
+  9% { opacity: 0.35; }
+  12% { opacity: 0.9; }
+  100% { opacity: 0.55; }
 }
 
-.tr-shimmer {
+/* animated noise overlay (cheap grain) */
+@keyframes tr_noise {
+  0% { transform: translate3d(0, 0, 0); }
+  10% { transform: translate3d(-2%, 1%, 0); }
+  20% { transform: translate3d(-4%, -2%, 0); }
+  30% { transform: translate3d(3%, 2%, 0); }
+  40% { transform: translate3d(2%, -3%, 0); }
+  50% { transform: translate3d(-3%, 3%, 0); }
+  60% { transform: translate3d(-1%, -1%, 0); }
+  70% { transform: translate3d(4%, 1%, 0); }
+  80% { transform: translate3d(-2%, 4%, 0); }
+  90% { transform: translate3d(1%, -4%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ---------------------------
+   Utility classes
+--------------------------- */
+
+.tr-graffiti {
+  font-family: var(--font-graffiti), var(--font-sans), system-ui;
+  letter-spacing: 0.02em;
+}
+
+.tr-marquee {
+  animation: tr_marquee 18s linear infinite;
+}
+
+.tr-sheen {
   position: relative;
   overflow: hidden;
 }
 
-.tr-shimmer::after {
+.tr-sheen::after {
   content: "";
   position: absolute;
   top: -20%;
   left: -60%;
-  width: 60%;
-  height: 140%;
+  width: 45%;
+  height: 160%;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255,255,255,0.16),
+    rgba(255, 255, 255, 0.12),
     transparent
   );
-  animation: tr_shimmer 2.8s ease-in-out infinite;
+  transform: rotate(12deg);
+  animation: tr_sheen 3.2s ease-in-out infinite;
 }
 
-.tr-bar {
-  width: 0%;
-  animation: tr_fill 900ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+.tr-noise {
+  position: relative;
+}
+
+.tr-noise::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  animation: tr_noise 1.25s steps(2) infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tr-marquee,
+  .tr-sheen::after,
+  .tr-noise::before {
+    animation: none !important;
+  }
 }

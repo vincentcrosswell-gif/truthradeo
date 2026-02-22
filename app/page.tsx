@@ -1,3 +1,4 @@
+import type React from "react";
 import Link from "next/link";
 import {
   SignedIn,
@@ -10,66 +11,77 @@ import {
 export const metadata = {
   title: "TruthRadeo • Chicago Stage",
   description:
-    "Stage 1 Chicago: Revenue Architecture Engine for music creators. Snapshot → Diagnostic → Offer → Assets → Iterate.",
+    "TruthRadeo Stage 1 (Chicago): turn your current creator reality into an offer + scripts + rollout plan + iteration loop.",
 };
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
-      <GraffitiBackdrop />
+      <Backdrop />
 
-      {/* Top bar */}
-      <div className="border-b border-white/10 bg-black/50 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-6 py-2 text-xs text-white/70">
+      {/* Top strip */}
+      <div className="border-b border-white/10 bg-black/40 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-2 text-xs text-white/70">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-white/70" />
-              <span className="font-semibold text-white/80">Stage 1</span>
-              <span className="text-white/40">•</span>
-              <span>Chicago</span>
+              <span className="h-2 w-2 rounded-full bg-[rgba(0,229,255,0.9)]" />
+              <span className="font-extrabold text-white/85">LIVE</span>
+              <span className="text-white/35">•</span>
+              <span className="font-semibold text-white/70">Stage 1</span>
+              <span className="text-white/35">•</span>
+              <span className="text-white/70">Chicago</span>
             </span>
             <span className="text-white/60">
-              Snapshot live • Diagnostic + Offer + Assets next
+              built for artists trying to get paid this month
             </span>
           </div>
-          <div className="hidden text-white/50 md:block">
-            TruthRadeo • Letting Music Soar
+
+          <div className="hidden items-center gap-3 md:flex">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              no streaming
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              no gimmicks
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              assets you can deploy
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Sticky Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      {/* Sticky nav */}
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/35 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <Link href="/" className="group flex items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-2xl border border-white/15 bg-white/5">
-              <div className="absolute inset-0 animate-[tr_pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.25),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.18),transparent_55%)]" />
-              <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:16px_16px]" />
+            <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+              <div className="absolute inset-0 animate-[tr_pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle_at_20%_20%,rgba(255,0,122,0.35),transparent_55%),radial-gradient(circle_at_80%_60%,rgba(0,229,255,0.30),transparent_55%),radial-gradient(circle_at_55%_90%,rgba(255,214,0,0.22),transparent_55%)]" />
+              <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:18px_18px]" />
             </div>
             <div className="leading-tight">
-              <div className="text-xs tracking-wide text-white/60">
+              <div className="text-[11px] tracking-wide text-white/55">
                 TruthRadeo
               </div>
-              <div className="text-base font-extrabold tracking-tight">
+              <div className="text-base font-black tracking-tight">
                 Chicago Stage
               </div>
             </div>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
-            <a href="#vibe" className="hover:text-white">
-              Vibe
+            <a className="hover:text-white" href="#pain">
+              Money pain
             </a>
-            <a href="#deliverables" className="hover:text-white">
+            <a className="hover:text-white" href="#what">
               What you get
             </a>
-            <a href="#how" className="hover:text-white">
-              How it works
+            <a className="hover:text-white" href="#loop">
+              The loop
             </a>
-            <a href="#pricing" className="hover:text-white">
+            <a className="hover:text-white" href="#pricing">
               Pricing
             </a>
-            <a href="#faq" className="hover:text-white">
+            <a className="hover:text-white" href="#faq">
               FAQ
             </a>
           </nav>
@@ -82,12 +94,11 @@ export default function Home() {
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90">
-                  Create account
+                <button className="tr-sheen rounded-xl bg-white px-4 py-2 text-sm font-extrabold text-black hover:bg-white/90">
+                  Start free
                 </button>
               </SignUpButton>
             </SignedOut>
-
             <SignedIn>
               <Link
                 href="/dashboard"
@@ -101,64 +112,69 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO (Graffiti Poster) */}
+      {/* HERO */}
       <section className="mx-auto w-full max-w-6xl px-6 pt-10 md:pt-14">
-        <div className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-black/35 p-6 md:p-10">
-          {/* neon border anim */}
-          <div className="pointer-events-none absolute inset-0 rounded-[2.25rem] opacity-70 [background:conic-gradient(from_180deg_at_50%_50%,rgba(255,0,122,0.35),rgba(0,229,255,0.35),rgba(255,214,0,0.35),rgba(255,0,122,0.35))] animate-[tr_spin_10s_linear_infinite]" />
-          <div className="pointer-events-none absolute inset-[2px] rounded-[2.15rem] bg-neutral-950/90" />
+        <div className="tr-noise relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/35">
+          {/* animated border */}
+          <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] opacity-70 [background:conic-gradient(from_180deg_at_50%_50%,rgba(255,0,122,0.35),rgba(0,229,255,0.35),rgba(255,214,0,0.35),rgba(255,0,122,0.35))] animate-[tr_spin_12s_linear_infinite]" />
+          <div className="pointer-events-none absolute inset-[2px] rounded-[2.35rem] bg-neutral-950/90" />
 
-          {/* content layer */}
-          <div className="relative grid gap-10 lg:grid-cols-12">
+          <div className="relative grid gap-10 p-6 md:p-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <div className="flex flex-wrap items-center gap-2">
-                <Tag color="pink">STAGE 1</Tag>
-                <Tag color="cyan">CHICAGO</Tag>
-                <Tag color="yellow">REVENUE ENGINE</Tag>
+                <Tag tone="pink">STAGE 1</Tag>
+                <Tag tone="cyan">CHICAGO</Tag>
+                <Tag tone="yellow">GET PAID ENGINE</Tag>
                 <span className="ml-1 inline-flex items-center gap-2 text-xs text-white/60">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
-                  for creators who actually want to get paid
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/70" />
+                  for artists, producers, DJs, managers
                 </span>
               </div>
 
               <h1 className="mt-6 text-4xl font-black tracking-tight md:text-6xl">
-                <span className="inline-block animate-[tr_float_6s_ease-in-out_infinite]">
-                  Graffiti-level clarity
-                </span>{" "}
-                for your music revenue.
+                <span className="tr-graffiti inline-block animate-[tr_wobble_5s_ease-in-out_infinite]">
+                  Stop starving
+                </span>
+                <span className="text-white/80">.</span>
+                <br />
+                Turn your music into a
+                <span className="relative ml-2 inline-block">
+                  <span className="absolute -inset-2 -z-10 rounded-2xl bg-[radial-gradient(circle_at_20%_20%,rgba(255,214,0,0.22),transparent_60%),radial-gradient(circle_at_80%_60%,rgba(0,229,255,0.20),transparent_55%),radial-gradient(circle_at_55%_90%,rgba(255,0,122,0.18),transparent_55%)]" />
+                  <span className="tr-graffiti">money move</span>
+                </span>
+                .
               </h1>
 
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 md:text-lg">
-                Chicago Stage doesn’t stream your music. It turns your current
-                creator reality into a structured plan and generates launch-ready
-                assets: offer copy, DM/email scripts, timeline, and a simple
-                forecast.
+                TruthRadeo doesn’t promise algorithm magic. Chicago Stage turns
+                what you already have (skills, vibe, audience, time) into:
+                <span className="font-semibold text-white/85">
+                  {" "}a sellable offer + pricing + scripts + rollout plan
+                </span>
+                — then gives you an iteration loop to improve it.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <SignedOut>
                   <SignUpButton mode="modal">
-                    <GraffitiPrimary>Start Chicago Stage</GraffitiPrimary>
+                    <PrimaryCTA>Build my revenue plan</PrimaryCTA>
                   </SignUpButton>
-
                   <SignInButton mode="modal">
-                    <GraffitiSecondary>Sign in</GraffitiSecondary>
+                    <SecondaryCTA>Sign in</SecondaryCTA>
                   </SignInButton>
-
                   <Link href="/pricing">
-                    <GraffitiGhost>See Pricing</GraffitiGhost>
+                    <GhostCTA>See pricing</GhostCTA>
                   </Link>
                 </SignedOut>
-
                 <SignedIn>
                   <Link href="/dashboard">
-                    <GraffitiPrimary>Open Dashboard</GraffitiPrimary>
+                    <PrimaryCTA>Open dashboard</PrimaryCTA>
+                  </Link>
+                  <Link href="/dashboard">
+                    <SecondaryCTA>Start Snapshot</SecondaryCTA>
                   </Link>
                   <Link href="/pricing">
-                    <GraffitiSecondary>Pricing</GraffitiSecondary>
-                  </Link>
-                  <Link href="/faq">
-                    <GraffitiGhost>FAQ</GraffitiGhost>
+                    <GhostCTA>Pricing</GhostCTA>
                   </Link>
                 </SignedIn>
               </div>
@@ -167,99 +183,100 @@ export default function Home() {
                 <HoloStat
                   label="Time to value"
                   value="5–15 min"
-                  sub="Snapshot starts now"
+                  sub="Snapshot → plan"
                   accent="cyan"
                 />
                 <HoloStat
-                  label="Output"
-                  value="Blueprint + Assets"
-                  sub="copy + scripts + plan"
+                  label="You leave with"
+                  value="Copy + scripts"
+                  sub="DMs, emails, pitch"
                   accent="pink"
                 />
                 <HoloStat
-                  label="Scope"
-                  value="Stage 1 only"
-                  sub="foundation first"
+                  label="Outcome"
+                  value="A money lane"
+                  sub="offer + rollout"
                   accent="yellow"
                 />
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2 text-xs text-white/60">
-                <Pill>Artists</Pill>
-                <Pill>Producers</Pill>
-                <Pill>DJs</Pill>
-                <Pill>Bookings</Pill>
-                <Pill>Merch</Pill>
-                <Pill>Features</Pill>
-                <Pill>Brand deals</Pill>
+                <Chip>booking scripts</Chip>
+                <Chip>merch offer</Chip>
+                <Chip>features</Chip>
+                <Chip>beats / packs</Chip>
+                <Chip>studio sessions</Chip>
+                <Chip>content → funnel</Chip>
+                <Chip>brand collabs</Chip>
               </div>
             </div>
 
-            {/* right poster / “spray” panel */}
+            {/* right panel */}
             <div className="lg:col-span-5">
               <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-6">
-                <div className="pointer-events-none absolute -left-16 top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.35),transparent_60%)] blur-2xl" />
-                <div className="pointer-events-none absolute -right-16 bottom-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(255,0,122,0.35),transparent_60%)] blur-2xl" />
+                <div className="pointer-events-none absolute -left-20 top-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.33),transparent_60%)] blur-2xl" />
+                <div className="pointer-events-none absolute -right-20 bottom-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(255,0,122,0.30),transparent_60%)] blur-2xl" />
 
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-xs text-white/60">Tonight’s drop</div>
+                    <div className="text-xs text-white/60">
+                      Chicago output stack
+                    </div>
                     <div className="mt-1 text-xl font-extrabold tracking-tight">
-                      Creator Snapshot
+                      Snapshot → Cash Plan
                     </div>
                     <div className="mt-2 text-sm text-white/70">
-                      Capture signal → Diagnostic → Offer → Assets.
+                      You don’t leave with motivation. You leave with assets.
                     </div>
                   </div>
-                  <div className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                    v1 live
-                  </div>
+                  <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                    v1
+                  </span>
                 </div>
 
                 <div className="mt-5 grid gap-3">
                   <SprayRow
-                    title="Snapshot"
-                    desc="identity • links • audience • revenue"
-                    accent="cyan"
-                  />
-                  <SprayRow
-                    title="Diagnostic"
-                    desc="leaks • priorities • risk/impact"
+                    title="Revenue Diagnostic"
+                    desc="where you’re leaking money + what to fix first"
                     accent="pink"
                   />
                   <SprayRow
                     title="Offer Architect"
-                    desc="offer ladder • pricing • value"
+                    desc="what to sell + pricing ladder + value stack"
                     accent="yellow"
                   />
                   <SprayRow
                     title="Execution Assets"
-                    desc="copy • scripts • timeline"
+                    desc="offer page copy + DMs + email launch sequence"
                     accent="cyan"
                   />
                   <SprayRow
-                    title="Iteration Plan"
-                    desc="log results • adjust"
+                    title="30-day plan"
+                    desc="weekly actions + a clean rollout calendar"
                     accent="pink"
+                  />
+                  <SprayRow
+                    title="Iteration Loop"
+                    desc="log results, improve, repeat"
+                    accent="yellow"
                   />
                 </div>
 
                 <div className="mt-6">
                   <SignedOut>
                     <SignUpButton mode="modal">
-                      <button className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-white/90">
-                        Claim your Chicago Stage
+                      <button className="tr-sheen w-full rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-black hover:bg-white/90">
+                        Start the Snapshot (free)
                       </button>
                     </SignUpButton>
                     <div className="mt-2 text-center text-xs text-white/50">
-                      no streaming • no gimmicks • just execution
+                      no streaming • no b.s. • just execution
                     </div>
                   </SignedOut>
-
                   <SignedIn>
                     <Link
                       href="/dashboard"
-                      className="block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-black hover:bg-white/90"
+                      className="block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-extrabold text-black hover:bg-white/90"
                     >
                       Continue in Dashboard
                     </Link>
@@ -272,98 +289,140 @@ export default function Home() {
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <Sticker
-                  title="Street-to-stage"
-                  desc="Built for creators who move."
+                  title="Street energy"
+                  desc="youthful vibe, serious output"
                   accent="cyan"
                 />
                 <Sticker
-                  title="Assets, not advice"
-                  desc="Copy/paste execution."
+                  title="Money clarity"
+                  desc="pricing + scripts + plan"
                   accent="pink"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* moving ticker */}
+          <div className="border-t border-white/10 bg-black/40">
+            <div className="relative overflow-hidden py-3">
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black/80 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black/80 to-transparent" />
+              <div className="flex gap-6 whitespace-nowrap text-sm text-white/70">
+                <div className="tr-marquee flex min-w-[200%] items-center gap-6">
+                  <TickerItem>"I need rent money." → offer + scripts</TickerItem>
+                  <TickerItem>"My streams don’t pay." → direct revenue lanes</TickerItem>
+                  <TickerItem>"I hate selling." → DMs + emails done for you</TickerItem>
+                  <TickerItem>"I’m undercharging." → pricing ladder</TickerItem>
+                  <TickerItem>"I’m stuck." → weekly action plan</TickerItem>
+                  <TickerItem>"I need rent money." → offer + scripts</TickerItem>
+                  <TickerItem>"My streams don’t pay." → direct revenue lanes</TickerItem>
+                  <TickerItem>"I hate selling." → DMs + emails done for you</TickerItem>
+                  <TickerItem>"I’m undercharging." → pricing ladder</TickerItem>
+                  <TickerItem>"I’m stuck." → weekly action plan</TickerItem>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* VIBE SECTION */}
-      <section id="vibe" className="mx-auto w-full max-w-6xl px-6 py-12">
+      {/* MONEY PAIN */}
+      <section id="pain" className="mx-auto w-full max-w-6xl px-6 py-12">
         <SectionTitle
-          kicker="THE VIBE"
-          title="Feels like a mixtape cover. Works like a manager."
-          subtitle="Bright visuals for creators — but the output is serious business execution."
+          kicker="THE PROBLEM"
+          title="Talent is common. Rent is not forgiving."
+          subtitle="Most creators aren’t failing because the music is bad. They’re failing because the money path is vague."
         />
 
         <div className="mt-6 grid gap-4 lg:grid-cols-12">
           <div className="lg:col-span-7">
             <div className="rounded-[2rem] border border-white/10 bg-black/35 p-7">
               <div className="grid gap-4 md:grid-cols-2">
-                <VibeCard
-                  title="Chicago = Revenue Architecture"
-                  desc="Stage 1 builds monetization foundation first."
-                  accent="yellow"
-                />
-                <VibeCard
-                  title="No streaming dependency"
-                  desc="Works without Spotify/YouTube API integrations."
+                <PainCard
+                  title="Streaming ≠ income"
+                  desc="You can have plays and still be broke. Chicago builds direct revenue moves."
                   accent="cyan"
                 />
-                <VibeCard
-                  title="Offer clarity"
-                  desc="What to sell, how to price, and how to pitch."
+                <PainCard
+                  title="No offer = no money"
+                  desc="If you can’t say what you sell in one sentence, you’re losing time and cash."
                   accent="pink"
                 />
-                <VibeCard
-                  title="Execution-first"
-                  desc="Scripts + timeline + forecast targets."
-                  accent="cyan"
+                <PainCard
+                  title="Undercharging"
+                  desc="Most artists price from fear. Chicago gives a pricing ladder that fits your reality."
+                  accent="yellow"
                 />
+                <PainCard
+                  title="Chaos execution"
+                  desc="Posting randomly is a strategy for burnout. Chicago gives a weekly plan you can follow."
+                  accent="pink"
+                />
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="text-xs text-white/60">TruthRadeo promise</div>
+                <div className="mt-2 text-sm text-white/75">
+                  We don’t make you famous. We make your music operation
+                  <span className="font-semibold text-white/85"> sellable</span>.
+                </div>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-5">
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-7">
-              <div className="text-xs text-white/60">Creator reactions</div>
+            <div className="tr-noise relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-7">
+              <div className="pointer-events-none absolute -right-12 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(255,214,0,0.22),transparent_60%)] blur-2xl" />
+              <div className="pointer-events-none absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(0,229,255,0.18),transparent_60%)] blur-2xl" />
+
+              <div className="text-xs text-white/60">What Chicago feels like</div>
               <div className="mt-3 grid gap-3">
                 <Quote
                   who="Independent artist"
-                  text="“I stopped guessing. Chicago made my offer obvious.”"
+                  text="“I finally had something to sell that didn’t feel cringe.”"
                   accent="pink"
                 />
                 <Quote
                   who="Producer"
-                  text="“Pricing ladder alone saved me from undercharging.”"
+                  text="“Pricing ladder stopped me from undercharging.”"
                   accent="yellow"
                 />
                 <Quote
                   who="DJ / events"
-                  text="“Booking scripts paid for this fast.”"
+                  text="“The booking scripts paid for this fast.”"
                   accent="cyan"
                 />
               </div>
 
-              <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                <span className="font-semibold text-white/80">
-                  Stage 1 goal:
-                </span>{" "}
-                make monetization predictable before anything else.
+              <div className="mt-6 flex flex-wrap gap-3">
+                <SignedOut>
+                  <SignUpButton mode="modal">
+                    <PrimaryCTA>Start the Snapshot</PrimaryCTA>
+                  </SignUpButton>
+                  <Link href="/pricing">
+                    <SecondaryCTA>Compare tiers</SecondaryCTA>
+                  </Link>
+                </SignedOut>
+                <SignedIn>
+                  <Link href="/dashboard">
+                    <PrimaryCTA>Open Snapshot</PrimaryCTA>
+                  </Link>
+                  <Link href="/pricing">
+                    <SecondaryCTA>Compare tiers</SecondaryCTA>
+                  </Link>
+                </SignedIn>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* DELIVERABLES */}
-      <section
-        id="deliverables"
-        className="mx-auto w-full max-w-6xl px-6 pb-14"
-      >
+      {/* WHAT YOU GET */}
+      <section id="what" className="mx-auto w-full max-w-6xl px-6 pb-14">
         <SectionTitle
           kicker="WHAT YOU GET"
-          title="Tangible outputs creators will pay for."
-          subtitle="A blueprint plus assets you can deploy immediately."
+          title="A blueprint plus assets you can copy/paste."
+          subtitle="Not advice. Not theory. You leave with deliverables."
         />
 
         <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/35 p-7">
@@ -379,7 +438,7 @@ export default function Home() {
               accent="pink"
             />
             <Deliverable
-              title="Offer Ladder + Pricing"
+              title="Offer Ladder"
               desc="What you sell + how it stacks."
               accent="yellow"
             />
@@ -389,13 +448,13 @@ export default function Home() {
               accent="pink"
             />
             <Deliverable
-              title="DM/Email Scripts"
-              desc="Booking + collabs + sales."
+              title="DM + Email Scripts"
+              desc="Booking, collabs, sales."
               accent="cyan"
             />
             <Deliverable
-              title="Launch Timeline"
-              desc="7–30 day rollout plan."
+              title="30-day Rollout"
+              desc="Weekly actions + clean cadence."
               accent="yellow"
             />
           </div>
@@ -403,38 +462,38 @@ export default function Home() {
           <div className="mt-7 flex flex-wrap gap-3">
             <SignedOut>
               <SignUpButton mode="modal">
-                <GraffitiPrimary>Start Snapshot</GraffitiPrimary>
+                <PrimaryCTA>Generate my assets</PrimaryCTA>
               </SignUpButton>
               <Link href="/pricing">
-                <GraffitiSecondary>Compare tiers</GraffitiSecondary>
+                <SecondaryCTA>See tiers</SecondaryCTA>
               </Link>
             </SignedOut>
             <SignedIn>
               <Link href="/dashboard">
-                <GraffitiPrimary>Open Snapshot</GraffitiPrimary>
+                <PrimaryCTA>Open Snapshot</PrimaryCTA>
               </Link>
               <Link href="/pricing">
-                <GraffitiSecondary>Compare tiers</GraffitiSecondary>
+                <SecondaryCTA>See tiers</SecondaryCTA>
               </Link>
             </SignedIn>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="how" className="mx-auto w-full max-w-6xl px-6 pb-14">
+      {/* LOOP */}
+      <section id="loop" className="mx-auto w-full max-w-6xl px-6 pb-14">
         <SectionTitle
-          kicker="HOW IT WORKS"
-          title="A loop that turns chaos into execution."
+          kicker="THE LOOP"
+          title="A system that turns chaos into income."
           subtitle="Snapshot → Diagnostic → Offer → Assets → Iterate."
         />
 
         <div className="mt-6 grid gap-4 md:grid-cols-5">
-          <Step n="01" title="Snapshot" desc="Capture your current signal." />
-          <Step n="02" title="Diagnostic" desc="Find leaks + priorities." />
-          <Step n="03" title="Offer" desc="Design your money move." />
-          <Step n="04" title="Assets" desc="Scripts + copy + timeline." />
-          <Step n="05" title="Iterate" desc="Adjust after results." />
+          <Step n="01" title="Snapshot" desc="Capture your reality." />
+          <Step n="02" title="Diagnostic" desc="Find the money leak." />
+          <Step n="03" title="Offer" desc="Choose your lane." />
+          <Step n="04" title="Assets" desc="Get scripts + copy." />
+          <Step n="05" title="Iterate" desc="Improve after results." />
         </div>
       </section>
 
@@ -442,8 +501,8 @@ export default function Home() {
       <section id="pricing" className="mx-auto w-full max-w-6xl px-6 pb-14">
         <SectionTitle
           kicker="PRICING"
-          title="Three tiers. One Chicago mission."
-          subtitle="Start where you are — upgrade when you want deeper diagnostics + assets."
+          title="Three tiers. One goal: get you paid."
+          subtitle="Start where you are — upgrade when you want deeper diagnostics + more assets."
         />
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -471,7 +530,7 @@ export default function Home() {
               "Advanced diagnostic + priorities",
               "Offer ladder + pricing ladder",
               "DM/email scripts",
-              "Launch timeline + 60-day planner",
+              "30–60 day rollout plan",
               "Basic forecast targets",
             ]}
           />
@@ -492,7 +551,28 @@ export default function Home() {
         </div>
 
         <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-          “Lifetime” applies to <span className="font-semibold text-white/80">Stage 1 (Chicago)</span> access. Future stages are separate.
+          “Lifetime” applies to{" "}
+          <span className="font-semibold text-white/80">Stage 1 (Chicago)</span>{" "}
+          access. Future stages are separate.
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <SignedOut>
+            <SignUpButton mode="modal">
+              <PrimaryCTA>Start now</PrimaryCTA>
+            </SignUpButton>
+            <Link href="/pricing">
+              <SecondaryCTA>View pricing page</SecondaryCTA>
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link href="/dashboard">
+              <PrimaryCTA>Open dashboard</PrimaryCTA>
+            </Link>
+            <Link href="/pricing">
+              <SecondaryCTA>Manage plan</SecondaryCTA>
+            </Link>
+          </SignedIn>
         </div>
       </section>
 
@@ -534,18 +614,18 @@ export default function Home() {
           <div className="flex flex-wrap gap-3">
             <SignedOut>
               <SignUpButton mode="modal">
-                <GraffitiPrimary>Start Chicago Stage</GraffitiPrimary>
+                <PrimaryCTA>Start Chicago Stage</PrimaryCTA>
               </SignUpButton>
               <Link href="/pricing">
-                <GraffitiSecondary>Pricing</GraffitiSecondary>
+                <SecondaryCTA>Pricing</SecondaryCTA>
               </Link>
             </SignedOut>
             <SignedIn>
               <Link href="/dashboard">
-                <GraffitiPrimary>Open dashboard</GraffitiPrimary>
+                <PrimaryCTA>Open dashboard</PrimaryCTA>
               </Link>
               <Link href="/pricing">
-                <GraffitiSecondary>Pricing</GraffitiSecondary>
+                <SecondaryCTA>Pricing</SecondaryCTA>
               </Link>
             </SignedIn>
           </div>
@@ -557,17 +637,19 @@ export default function Home() {
   );
 }
 
-/* -------------------- Backdrop + Components -------------------- */
+/* -------------------- Backdrop + UI bits -------------------- */
 
-function GraffitiBackdrop() {
+function Backdrop() {
   return (
     <>
-      {/* Neon haze */}
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(60%_60%_at_20%_20%,rgba(0,229,255,0.20),transparent_60%),radial-gradient(60%_60%_at_80%_15%,rgba(255,0,122,0.20),transparent_55%),radial-gradient(70%_70%_at_50%_85%,rgba(255,214,0,0.15),transparent_60%)]" />
-      {/* Grain */}
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.06] [background-image:radial-gradient(rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:3px_3px]" />
-      {/* Subtle grid */}
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.05] [background-image:linear-gradient(to_right,rgba(255,255,255,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.25)_1px,transparent_1px)] [background-size:72px_72px]" />
+      {/* neon haze */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(60%_60%_at_18%_18%,rgba(0,229,255,0.20),transparent_60%),radial-gradient(60%_60%_at_80%_15%,rgba(255,0,122,0.20),transparent_55%),radial-gradient(70%_70%_at_50%_85%,rgba(255,214,0,0.15),transparent_60%)]" />
+      {/* faint graffiti strokes */}
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.08] [background-image:repeating-linear-gradient(115deg,rgba(255,255,255,0.22)_0px,rgba(255,255,255,0.22)_1px,transparent_1px,transparent_14px)]" />
+      {/* soft grid */}
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.05] [background-image:linear-gradient(to_right,rgba(255,255,255,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.25)_1px,transparent_1px)] [background-size:74px_74px]" />
+      {/* flicker vignette */}
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-40 animate-[tr_flicker_6s_linear_infinite] [background:radial-gradient(circle_at_50%_15%,transparent_0%,rgba(0,0,0,0.35)_40%,rgba(0,0,0,0.75)_100%)]" />
     </>
   );
 }
@@ -584,7 +666,7 @@ function SectionTitle({
   return (
     <div>
       <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-3 py-1 text-xs text-white/70">
-        <span className="font-semibold text-white/80">{kicker}</span>
+        <span className="font-extrabold text-white/80">{kicker}</span>
         <span className="text-white/30">•</span>
         <span>Chicago</span>
       </div>
@@ -600,14 +682,14 @@ function SectionTitle({
 
 function Tag({
   children,
-  color,
+  tone,
 }: {
   children: React.ReactNode;
-  color: "pink" | "cyan" | "yellow";
+  tone: "pink" | "cyan" | "yellow";
 }) {
-  const map: Record<typeof color, string> = {
-    pink: "border-white/15 bg-[linear-gradient(90deg,rgba(255,0,122,0.35),rgba(255,255,255,0.05))]",
-    cyan: "border-white/15 bg-[linear-gradient(90deg,rgba(0,229,255,0.35),rgba(255,255,255,0.05))]",
+  const map: Record<typeof tone, string> = {
+    pink: "border-white/15 bg-[linear-gradient(90deg,rgba(255,0,122,0.38),rgba(255,255,255,0.05))]",
+    cyan: "border-white/15 bg-[linear-gradient(90deg,rgba(0,229,255,0.36),rgba(255,255,255,0.05))]",
     yellow:
       "border-white/15 bg-[linear-gradient(90deg,rgba(255,214,0,0.30),rgba(255,255,255,0.05))]",
   };
@@ -615,7 +697,7 @@ function Tag({
     <span
       className={[
         "inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-extrabold tracking-wide text-white/90",
-        map[color],
+        map[tone],
       ].join(" ")}
     >
       {children}
@@ -623,7 +705,7 @@ function Tag({
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
+function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-full border border-white/10 bg-black/35 px-3 py-1">
       {children}
@@ -631,17 +713,17 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
-function GraffitiPrimary({ children }: { children: React.ReactNode }) {
+function PrimaryCTA({ children }: { children: React.ReactNode }) {
   return (
     <button className="relative overflow-hidden rounded-2xl px-5 py-3 text-sm font-extrabold text-black">
-      <span className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,229,255,1),rgba(255,214,0,1),rgba(255,0,122,1))] animate-[tr_shift_6s_linear_infinite]" />
+      <span className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,229,255,1),rgba(255,214,0,1),rgba(255,0,122,1))] animate-[tr_shift_7s_linear_infinite]" />
       <span className="absolute inset-[2px] rounded-2xl bg-white" />
       <span className="relative">{children}</span>
     </button>
   );
 }
 
-function GraffitiSecondary({ children }: { children: React.ReactNode }) {
+function SecondaryCTA({ children }: { children: React.ReactNode }) {
   return (
     <button className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold hover:bg-white/10">
       {children}
@@ -649,7 +731,7 @@ function GraffitiSecondary({ children }: { children: React.ReactNode }) {
   );
 }
 
-function GraffitiGhost({ children }: { children: React.ReactNode }) {
+function GhostCTA({ children }: { children: React.ReactNode }) {
   return (
     <button className="rounded-2xl border border-white/10 bg-black/40 px-5 py-3 text-sm text-white/80 hover:bg-black/50">
       {children}
@@ -707,7 +789,7 @@ function SprayRow({
     <div className="rounded-2xl border border-white/10 bg-black/30 p-4 hover:bg-black/40">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-bold">{title}</div>
+          <div className="text-sm font-extrabold">{title}</div>
           <div className="mt-1 text-xs text-white/60">{desc}</div>
         </div>
         <div className={`mt-1 h-3 w-3 rounded-full ${dot}`} />
@@ -737,38 +819,11 @@ function Sticker({
       className={[
         "rounded-[1.75rem] border border-white/10 p-4",
         bg,
-        "rotate-[-1deg] hover:rotate-[0deg] transition-transform",
+        "animate-[tr_float_7s_ease-in-out_infinite]",
       ].join(" ")}
     >
       <div className="text-sm font-extrabold">{title}</div>
       <div className="mt-1 text-xs text-white/65">{desc}</div>
-    </div>
-  );
-}
-
-function VibeCard({
-  title,
-  desc,
-  accent,
-}: {
-  title: string;
-  desc: string;
-  accent: "pink" | "cyan" | "yellow";
-}) {
-  const bar =
-    accent === "cyan"
-      ? "bg-[rgba(0,229,255,0.8)]"
-      : accent === "pink"
-      ? "bg-[rgba(255,0,122,0.8)]"
-      : "bg-[rgba(255,214,0,0.8)]";
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5">
-      <div className={`absolute left-0 top-0 h-full w-1 ${bar}`} />
-      <div className="pl-2">
-        <div className="text-sm font-extrabold">{title}</div>
-        <div className="mt-1 text-sm text-white/70">{desc}</div>
-      </div>
     </div>
   );
 }
@@ -800,6 +855,33 @@ function Quote({
   );
 }
 
+function PainCard({
+  title,
+  desc,
+  accent,
+}: {
+  title: string;
+  desc: string;
+  accent: "pink" | "cyan" | "yellow";
+}) {
+  const bar =
+    accent === "cyan"
+      ? "bg-[rgba(0,229,255,0.85)]"
+      : accent === "pink"
+      ? "bg-[rgba(255,0,122,0.85)]"
+      : "bg-[rgba(255,214,0,0.85)]";
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div className={`absolute left-0 top-0 h-full w-1 ${bar}`} />
+      <div className="pl-2">
+        <div className="text-sm font-extrabold">{title}</div>
+        <div className="mt-1 text-sm text-white/70">{desc}</div>
+      </div>
+    </div>
+  );
+}
+
 function Deliverable({
   title,
   desc,
@@ -809,31 +891,37 @@ function Deliverable({
   desc: string;
   accent: "pink" | "cyan" | "yellow";
 }) {
-  const dot =
+  const glow =
     accent === "cyan"
-      ? "bg-[rgba(0,229,255,0.9)]"
+      ? "bg-[radial-gradient(circle_at_25%_15%,rgba(0,229,255,0.16),transparent_60%)]"
       : accent === "pink"
-      ? "bg-[rgba(255,0,122,0.9)]"
-      : "bg-[rgba(255,214,0,0.9)]";
+      ? "bg-[radial-gradient(circle_at_25%_15%,rgba(255,0,122,0.16),transparent_60%)]"
+      : "bg-[radial-gradient(circle_at_25%_15%,rgba(255,214,0,0.14),transparent_60%)]";
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-sm font-extrabold">{title}</div>
-          <div className="mt-1 text-sm text-white/70">{desc}</div>
-        </div>
-        <div className={`mt-1 h-3 w-3 rounded-full ${dot}`} />
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-5">
+      <div className={`pointer-events-none absolute inset-0 ${glow}`} />
+      <div className="relative">
+        <div className="text-sm font-extrabold">{title}</div>
+        <div className="mt-1 text-sm text-white/70">{desc}</div>
       </div>
     </div>
   );
 }
 
-function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
+function Step({
+  n,
+  title,
+  desc,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+}) {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-black/35 p-5 hover:bg-black/45">
+    <div className="tr-noise relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="text-xs font-extrabold text-white/60">{n}</div>
-      <div className="mt-2 text-base font-extrabold">{title}</div>
+      <div className="mt-2 text-sm font-extrabold">{title}</div>
       <div className="mt-1 text-sm text-white/70">{desc}</div>
     </div>
   );
@@ -844,71 +932,79 @@ function Tier({
   price,
   lifetime,
   tag,
-  bullets,
   accent,
+  bullets,
   highlight,
 }: {
   name: string;
   price: string;
   lifetime: string;
   tag: string;
-  bullets: string[];
   accent: "pink" | "cyan" | "yellow";
+  bullets: string[];
   highlight?: boolean;
 }) {
   const glow =
     accent === "cyan"
-      ? "bg-[radial-gradient(circle_at_20%_20%,rgba(0,229,255,0.18),transparent_60%)]"
+      ? "bg-[radial-gradient(circle_at_30%_15%,rgba(0,229,255,0.20),transparent_65%)]"
       : accent === "pink"
-      ? "bg-[radial-gradient(circle_at_20%_20%,rgba(255,0,122,0.18),transparent_60%)]"
-      : "bg-[radial-gradient(circle_at_20%_20%,rgba(255,214,0,0.16),transparent_60%)]";
+      ? "bg-[radial-gradient(circle_at_30%_15%,rgba(255,0,122,0.20),transparent_65%)]"
+      : "bg-[radial-gradient(circle_at_30%_15%,rgba(255,214,0,0.18),transparent_65%)]";
+
+  const ring = highlight
+    ? "ring-2 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_20px_70px_-20px_rgba(255,0,122,0.35)]"
+    : "";
 
   return (
     <div
       className={[
-        "relative overflow-hidden rounded-[2rem] border p-6",
-        highlight
-          ? "border-white/25 bg-white/5"
-          : "border-white/10 bg-black/35",
+        "relative overflow-hidden rounded-[2rem] border border-white/10 bg-black/35 p-7",
+        ring,
       ].join(" ")}
     >
       <div className={`pointer-events-none absolute inset-0 ${glow}`} />
+
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs text-white/60">Tier</div>
-            <div className="text-xl font-black">{name}</div>
+            <div className="text-sm font-extrabold">{name}</div>
+            <div className="mt-1 text-3xl font-black tracking-tight">
+              {price}
+            </div>
+            <div className="mt-1 text-sm text-white/60">{lifetime}</div>
           </div>
-          <div className="rounded-full border border-white/12 bg-white/5 px-3 py-1 text-xs text-white/70">
+          <span className="rounded-full border border-white/12 bg-white/5 px-3 py-1 text-xs text-white/70">
             {tag}
-          </div>
+          </span>
         </div>
 
-        <div className="mt-4">
-          <div className="text-2xl font-black">{price}</div>
-          <div className="mt-1 text-sm text-white/60">{lifetime}</div>
-        </div>
-
-        <ul className="mt-5 grid gap-2 text-sm text-white/70">
+        <ul className="mt-5 space-y-2 text-sm text-white/75">
           {bullets.map((b) => (
-            <li key={b} className="flex gap-2">
-              <span className="text-white/50">•</span>
+            <li key={b} className="flex items-start gap-2">
+              <span className="mt-1 inline-block h-2 w-2 flex-none rounded-full bg-white/70" />
               <span>{b}</span>
             </li>
           ))}
         </ul>
 
-        <Link
-          href="/pricing"
-          className={[
-            "mt-6 inline-flex w-full justify-center rounded-2xl px-4 py-2 text-sm font-extrabold",
-            highlight
-              ? "bg-white text-black hover:bg-white/90"
-              : "border border-white/15 bg-white/5 text-white hover:bg-white/10",
-          ].join(" ")}
-        >
-          View full pricing
-        </Link>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <SignedOut>
+            <SignUpButton mode="modal">
+              <PrimaryCTA>Start</PrimaryCTA>
+            </SignUpButton>
+            <Link href="/pricing">
+              <SecondaryCTA>Details</SecondaryCTA>
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link href="/pricing">
+              <PrimaryCTA>Choose plan</PrimaryCTA>
+            </Link>
+            <Link href="/dashboard">
+              <SecondaryCTA>Dashboard</SecondaryCTA>
+            </Link>
+          </SignedIn>
+        </div>
       </div>
     </div>
   );
@@ -916,37 +1012,92 @@ function Tier({
 
 function Accordion({ q, a }: { q: string; a: string }) {
   return (
-    <details className="group rounded-[1.75rem] border border-white/10 bg-white/5 p-6 open:bg-white/10">
-      <summary className="cursor-pointer list-none">
-        <div className="flex items-start justify-between gap-4">
-          <div className="text-base font-extrabold">{q}</div>
-          <div className="mt-1 text-white/50 transition-transform group-open:rotate-45">
-            +
-          </div>
-        </div>
+    <details className="group rounded-2xl border border-white/10 bg-white/5 p-5">
+      <summary className="cursor-pointer list-none text-sm font-extrabold text-white/85">
+        <span className="flex items-center justify-between gap-3">
+          {q}
+          <span className="rounded-full border border-white/10 bg-black/40 px-2 py-1 text-xs text-white/60 group-open:rotate-180 transition-transform">
+            ▾
+          </span>
+        </span>
       </summary>
-      <div className="mt-3 text-sm leading-relaxed text-white/70">{a}</div>
+      <div className="mt-3 text-sm text-white/70">{a}</div>
     </details>
+  );
+}
+
+function TickerItem({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-3">
+      <span className="h-2 w-2 rounded-full bg-white/60" />
+      <span className="text-white/70">{children}</span>
+    </span>
   );
 }
 
 function Footer() {
   return (
-    <footer className="border-t border-white/10 py-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
-        <div>© {new Date().getFullYear()} TruthRadeo</div>
-        <div className="flex flex-wrap gap-4">
-          <Link className="hover:text-white" href="/pricing">
-            Pricing
-          </Link>
-          <Link className="hover:text-white" href="/faq">
-            FAQ
-          </Link>
-          <Link className="hover:text-white" href="/dashboard">
-            Dashboard
-          </Link>
+    <footer className="border-t border-white/10 bg-black/35">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-10 md:grid-cols-12">
+        <div className="md:col-span-5">
+          <div className="text-sm font-extrabold">TruthRadeo</div>
+          <p className="mt-2 max-w-md text-sm text-white/70">
+            Chicago Stage is a revenue architecture engine for music creators.
+            Snapshot → Diagnostic → Offer → Assets → Iterate.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              Stage 1: Chicago
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              no streaming
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              execution assets
+            </span>
+          </div>
+        </div>
+
+        <div className="md:col-span-7">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FooterLink href="/pricing" title="Pricing" desc="Tiers + billing" />
+            <FooterLink href="/faq" title="FAQ" desc="What this is / isn’t" />
+            <FooterLink
+              href="/dashboard"
+              title="Dashboard"
+              desc="Your Snapshot + tools"
+            />
+            <FooterLink href="/" title="Chicago" desc="Stage 1 landing" />
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-white/50">
+            <span>© {new Date().getFullYear()} TruthRadeo</span>
+            <span className="font-mono text-[11px] text-white/45">
+              built in Next.js • deployed on Vercel
+            </span>
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterLink({
+  href,
+  title,
+  desc,
+}: {
+  href: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="tr-sheen block rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10"
+    >
+      <div className="text-sm font-extrabold">{title}</div>
+      <div className="mt-1 text-sm text-white/70">{desc}</div>
+    </Link>
   );
 }
