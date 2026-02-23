@@ -5,6 +5,9 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import CopyBlock from "./CopyBlock";
 import ExecutionRunsPanel from "./ExecutionRunsPanel";
+import UpgradeGate from "@/app/dashboard/_components/UpgradeGate";
+import { getUserPlan } from "@/lib/billing/entitlement";
+import { hasAccess } from "@/lib/billing/plans";
 
 function startOfChicagoDay(d = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -44,50 +47,56 @@ export default async function OfferPage({
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
+  const userPlan = await getUserPlan(userId);
+  const canIterate = hasAccess(userPlan, "RIVER_NORTH");
+  const canAssets = hasAccess(userPlan, "RIVER_NORTH");
+
   const offer = await db.offerBlueprint.findUnique({ where: { id } });
   if (!offer) return notFound();
   if (offer.userId !== userId) return notFound();
 
   const pricing = Array.isArray(offer.pricing) ? (offer.pricing as any[]) : [];
-  const deliverables = Array.isArray(offer.deliverables)
-    ? (offer.deliverables as any[])
-    : [];
+  const deliverables = Array.isArray(offer.deliverables) ? (offer.deliverables as any[]) : [];
   const funnel = Array.isArray(offer.funnel) ? (offer.funnel as any[]) : [];
   const scripts = (offer.scripts as any) || {};
 
-  const runs = await db.executionRun.findMany({
-    where: { userId, offerId: offer.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const runsDTO = runs.map((r) => ({
-    id: r.id,
-    createdAt: r.createdAt.toISOString(),
-    channel: r.channel,
-    outreachCount: r.outreachCount,
-    leadsCount: r.leadsCount,
-    callsBooked: r.callsBooked,
-    salesCount: r.salesCount,
-    revenueCents: r.revenueCents,
-    whatWorked: r.whatWorked,
-    whatDidnt: r.whatDidnt,
-    blockers: r.blockers,
-    notes: r.notes,
-    iterationPlanJson: r.iterationPlanJson as any,
-  }));
+  const runsDTO = canIterate
+    ? (
+        await db.executionRun.findMany({
+          where: { userId, offerId: offer.id },
+          orderBy: { createdAt: "desc" },
+        })
+      ).map((r) => ({
+        id: r.id,
+        createdAt: r.createdAt.toISOString(),
+        channel: r.channel,
+        outreachCount: r.outreachCount,
+        leadsCount: r.leadsCount,
+        callsBooked: r.callsBooked,
+        salesCount: r.salesCount,
+        revenueCents: r.revenueCents,
+        whatWorked: r.whatWorked,
+        whatDidnt: r.whatDidnt,
+        blockers: r.blockers,
+        notes: r.notes,
+        iterationPlanJson: r.iterationPlanJson as any,
+      }))
+    : [];
 
   const latestRun = runsDTO[0] || null;
-  const plan = (latestRun?.iterationPlanJson as any) || null;
+  const iterationPlan = (latestRun?.iterationPlanJson as any) || null;
 
-  // Today check-in status (OfferDailyCheckIn)
-  const today = startOfChicagoDay(new Date());
-  const todaysCheckIn = await db.offerDailyCheckIn.findUnique({
-    where: { offerId_day: { offerId: offer.id, day: today } },
-  });
+  const todaysCheckIn = canIterate
+    ? await db.offerDailyCheckIn.findUnique({
+        where: {
+          offerId_day: { offerId: offer.id, day: startOfChicagoDay(new Date()) },
+        },
+      })
+    : null;
 
-  const needsCheckIn = !todaysCheckIn;
-  const focus = pickFocus(plan);
-  const nextAction = pickFirstAction(plan);
+  const needsCheckIn = canIterate ? !todaysCheckIn : false;
+  const focus = pickFocus(iterationPlan);
+  const nextAction = pickFirstAction(iterationPlan);
 
   return (
     <div className="grid gap-6 p-6">
@@ -138,61 +147,76 @@ export default async function OfferPage({
         </div>
       </div>
 
-      {/* ✅ NEW: Offer-level Daily Nudge row */}
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="text-xs text-white/60">Daily Nudge</div>
-            <div className="mt-1 text-lg font-extrabold text-white/90">
-              Do this next (today).
+      {canIterate ? (
+        <>
+          {/* Offer-level Daily Nudge row */}
+          <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-xs text-white/60">Daily Nudge</div>
+                <div className="mt-1 text-lg font-extrabold text-white/90">
+                  Do this next (today).
+                </div>
+                <div className="mt-2 text-sm text-white/70">{focus}</div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    needsCheckIn
+                      ? "border-amber-400/25 bg-amber-500/10 text-amber-200"
+                      : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200"
+                  }`}
+                >
+                  {needsCheckIn ? "Check-in not done" : "Checked in today"}
+                </span>
+
+                <Link
+                  href="#daily-checkin"
+                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+                >
+                  {needsCheckIn ? "Save check-in →" : "Update check-in →"}
+                </Link>
+
+                <Link
+                  href="#log-run"
+                  className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
+                >
+                  Log run →
+                </Link>
+              </div>
             </div>
-            <div className="mt-2 text-sm text-white/70">{focus}</div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`rounded-full border px-3 py-1 text-xs ${
-                needsCheckIn
-                  ? "border-amber-400/25 bg-amber-500/10 text-amber-200"
-                  : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200"
-              }`}
-            >
-              {needsCheckIn ? "Check-in not done" : "Checked in today"}
-            </span>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="text-xs text-white/60">One next action</div>
+                <div className="mt-2 text-sm text-white/85">{nextAction}</div>
+              </div>
 
-            <Link
-              href="#daily-checkin"
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
-            >
-              {needsCheckIn ? "Save check-in →" : "Update check-in →"}
-            </Link>
-
-            <Link
-              href="#log-run"
-              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
-            >
-              Log run →
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="text-xs text-white/60">One next action</div>
-            <div className="mt-2 text-sm text-white/85">{nextAction}</div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="text-xs text-white/60">If you have 15 minutes</div>
-            <div className="mt-2 text-sm text-white/85">
-              Do a micro-block now, then save the check-in so the streak stays alive.
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="text-xs text-white/60">If you have 15 minutes</div>
+                <div className="mt-2 text-sm text-white/85">
+                  Do a micro-block now, then save the check-in so the streak stays alive.
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      {/* Iteration + Optimization */}
-      <ExecutionRunsPanel offerId={offer.id} initialRuns={runsDTO as any} />
+          {/* Iteration + Optimization */}
+          <ExecutionRunsPanel offerId={offer.id} initialRuns={runsDTO as any} />
+        </>
+      ) : (
+        <UpgradeGate
+          title="Unlock Iteration Engine"
+          message="Log execution runs, generate weekly iteration plans, and save daily check-ins. This is unlocked on River North and above."
+          currentPlan={userPlan}
+          requiredPlan="RIVER_NORTH"
+          primaryCtaHref="/pricing"
+          primaryCtaLabel="Upgrade to River North →"
+          secondaryCtaHref="/dashboard/diagnostic"
+          secondaryCtaLabel="Back to Diagnostic"
+        />
+      )}
 
       {/* Pricing ladder */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
@@ -204,10 +228,7 @@ export default async function OfferPage({
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {pricing.length ? (
             pricing.map((p, idx) => (
-              <div
-                key={idx}
-                className="rounded-2xl border border-white/10 bg-black/30 p-4"
-              >
+              <div key={idx} className="rounded-2xl border border-white/10 bg-black/30 p-4">
                 <div className="text-xs text-white/60">{p.tier}</div>
                 <div className="mt-1 text-2xl font-extrabold">{p.price}</div>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-white/80">
@@ -241,16 +262,11 @@ export default async function OfferPage({
 
         <section className="rounded-3xl border border-white/10 bg-black/30 p-6">
           <h2 className="text-lg font-extrabold">Mini funnel</h2>
-          <p className="mt-1 text-sm text-white/60">
-            Traffic → Convert → Deliver → Upsell
-          </p>
+          <p className="mt-1 text-sm text-white/60">Traffic → Convert → Deliver → Upsell</p>
           <div className="mt-4 grid gap-3">
             {funnel.length ? (
               funnel.map((f, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-white/10 bg-black/40 p-4"
-                >
+                <div key={i} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                   <div className="text-xs text-white/60">{f.step}</div>
                   <div className="mt-1 text-sm text-white/80">{f.action}</div>
                 </div>
@@ -265,9 +281,7 @@ export default async function OfferPage({
       {/* Scripts */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
         <h2 className="text-lg font-extrabold">Scripts (copy/paste)</h2>
-        <p className="mt-1 text-sm text-white/60">
-          Use these immediately in DMs and captions.
-        </p>
+        <p className="mt-1 text-sm text-white/60">Use these immediately in DMs and captions.</p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <CopyBlock title="DM opener" text={scripts.dm ?? ""} />
@@ -279,16 +293,25 @@ export default async function OfferPage({
       {/* Next */}
       <section className="rounded-3xl border border-white/10 bg-black/40 p-6">
         <div className="text-sm text-white/70">
-          Next page after this: <span className="text-white">Execution Assets</span>{" "}
-          (email sequence + landing page copy).
+          Next page after this: <span className="text-white">Execution Assets</span> (email
+          sequence + landing page copy).
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href={`/dashboard/assets?offerId=${offer.id}`}
-            className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
-          >
-            Generate Execution Assets →
-          </Link>
+          {canAssets ? (
+            <Link
+              href={`/dashboard/assets?offerId=${offer.id}`}
+              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
+            >
+              Generate Execution Assets →
+            </Link>
+          ) : (
+            <Link
+              href="/pricing"
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+            >
+              Execution Assets locked — Upgrade →
+            </Link>
+          )}
         </div>
       </section>
     </div>

@@ -2,6 +2,9 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { getUserPlan } from "@/lib/billing/entitlement";
+import { hasAccess } from "@/lib/billing/plans";
+import UpgradeGate from "@/app/dashboard/_components/UpgradeGate";
 
 function startOfChicagoDay(d = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -41,6 +44,24 @@ export default async function DailyNudgePanel() {
   const { userId } = await auth();
   if (!userId) return null;
 
+  const plan = await getUserPlan(userId);
+
+  // If user is FREE, nudge them to upgrade (Offer Architect is paid).
+  if (!hasAccess(plan, "SOUTH_LOOP")) {
+    return (
+      <UpgradeGate
+        title="Turn your Snapshot into an offer"
+        message="Free includes Snapshot + Diagnostic. Upgrade to South Loop to unlock Offer Architect (blueprints). Upgrade to River North for Execution Assets + Iteration."
+        currentPlan={plan}
+        requiredPlan="SOUTH_LOOP"
+        primaryCtaHref="/pricing"
+        primaryCtaLabel="Upgrade to South Loop →"
+        secondaryCtaHref="/dashboard/diagnostic"
+        secondaryCtaLabel="Run Diagnostic"
+      />
+    );
+  }
+
   // Latest offer for this user (the “active workspace”)
   const offer = await db.offerBlueprint.findFirst({
     where: { userId },
@@ -78,27 +99,88 @@ export default async function DailyNudgePanel() {
     );
   }
 
+  // South Loop can view the workspace, but Iteration + Daily Check-ins are River North.
+  if (!hasAccess(plan, "RIVER_NORTH")) {
+    return (
+      <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs text-white/60">Daily Nudge</div>
+            <h2 className="mt-1 text-xl font-extrabold">Your blueprint is ready.</h2>
+            <p className="mt-2 text-sm text-white/70">
+              Upgrade to <span className="text-white">River North</span> to unlock daily
+              check-ins + execution run logs + weekly iteration plans.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/offers/${offer.id}`}
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+            >
+              Open Offer Workspace →
+            </Link>
+            <Link
+              href="/pricing"
+              className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90"
+            >
+              Upgrade →
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className="text-xs text-white/60">Active offer</div>
+            <div className="mt-1 text-base font-semibold text-white/90">
+              {offer.title || "Untitled blueprint"}
+            </div>
+            <div className="mt-2 text-xs text-white/60">
+              Lane: <span className="text-white/80">{offer.lane}</span>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className="text-xs text-white/60">Locked on South Loop</div>
+            <div className="mt-2 text-sm text-white/85">
+              Daily check-in streaks, run logs, and iteration plans.
+            </div>
+            <div className="mt-3 text-xs text-white/50">
+              That’s the retention engine — it keeps artists executing.
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className="text-xs text-white/60">Fastest path</div>
+            <div className="mt-2 text-sm text-white/85">
+              Upgrade → open the workspace → log your first run.
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   // Latest iteration plan = latest execution run (if any)
   const latestRun = await db.executionRun.findFirst({
     where: { userId, offerId: offer.id },
     orderBy: { createdAt: "desc" },
   });
 
-  const plan = (latestRun?.iterationPlanJson as any) || null;
+  const iterationPlan = (latestRun?.iterationPlanJson as any) || null;
 
   // Today check-in status
   const today = startOfChicagoDay(new Date());
 
-  // Requires model OfferDailyCheckIn (from the previous step)
   const todaysCheckIn = await db.offerDailyCheckIn.findUnique({
     where: { offerId_day: { offerId: offer.id, day: today } },
   });
 
   const needsCheckIn = !todaysCheckIn;
 
-  const nextAction = pickFirstAction(plan);
-  const focus = pickFocus(plan);
-  const targets = pickTargets(plan);
+  const nextAction = pickFirstAction(iterationPlan);
+  const focus = pickFocus(iterationPlan);
+  const targets = pickTargets(iterationPlan);
 
   return (
     <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">

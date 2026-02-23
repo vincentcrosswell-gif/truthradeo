@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { getUserPlan } from "@/lib/billing/entitlement";
+import { hasAccess } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,19 @@ export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) return noStoreJson({ error: "Unauthorized" }, { status: 401 });
 
+  const plan = await getUserPlan(userId);
+  if (!hasAccess(plan, "RIVER_NORTH")) {
+    return noStoreJson(
+      {
+        error: "upgrade_required",
+        message: "Daily check-ins are unlocked on River North and above.",
+        currentPlan: plan,
+        requiredPlan: "RIVER_NORTH",
+      },
+      { status: 402 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const offerId = searchParams.get("offerId") || "";
   const days = Math.min(30, Math.max(1, intOr0(searchParams.get("days") || "14")));
@@ -67,6 +82,19 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return noStoreJson({ error: "Unauthorized" }, { status: 401 });
+
+  const plan = await getUserPlan(userId);
+  if (!hasAccess(plan, "RIVER_NORTH")) {
+    return noStoreJson(
+      {
+        error: "upgrade_required",
+        message: "Daily check-ins are unlocked on River North and above.",
+        currentPlan: plan,
+        requiredPlan: "RIVER_NORTH",
+      },
+      { status: 402 }
+    );
+  }
 
   const body = await req.json().catch(() => ({}));
 
