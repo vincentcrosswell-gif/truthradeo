@@ -119,10 +119,10 @@ model OfferDailyCheckIn {
   offerId   String
 
   // “Day bucket” normalized to the start of the day in America/Chicago (server enforces)
-  day       DateTime
+  day DateTime
 
   // 1–5
-  energy    Int @default(3)
+  energy Int @default(3)
 
   // How much did you actually execute today?
   minutesExecuted Int @default(0)
@@ -144,6 +144,25 @@ model OfferDailyCheckIn {
   @@unique([offerId, day])
   @@index([userId, day])
   @@index([offerId, day])
+}
+
+model AppEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  name  String
+  route String @default("")
+  step  String @default("")
+
+  offerId    String?
+  snapshotId String?
+
+  meta Json?
+
+  @@index([userId, createdAt])
+  @@index([userId, name, createdAt])
+  @@index([userId, step, createdAt])
 }
 
 enum Plan {

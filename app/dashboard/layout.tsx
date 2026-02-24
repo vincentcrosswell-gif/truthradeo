@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 type NavItem = {
   href: string;
@@ -16,6 +17,7 @@ const WORKSPACE_NAV: NavItem[] = [
   { href: "/dashboard/snapshot/summary", label: "Snapshot Summary", match: "exact" },
   { href: "/dashboard/diagnostic", label: "Revenue Diagnostic", match: "prefix" },
   { href: "/dashboard/offers", label: "Offer Library", match: "prefix" },
+  { href: "/dashboard/analytics", label: "Analytics", match: "exact" },
 ];
 
 const ACCOUNT_NAV: NavItem[] = [
@@ -26,9 +28,30 @@ const ACCOUNT_NAV: NavItem[] = [
 
 function isActive(pathname: string, item: NavItem) {
   const mode = item.match ?? "prefix";
-
   if (mode === "exact") return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+function normalizeDashboardRoute(pathname: string) {
+  if (pathname === "/dashboard") return "/dashboard";
+  if (pathname.startsWith("/dashboard/snapshot/summary")) return "/dashboard/snapshot/summary";
+  if (pathname.startsWith("/dashboard/snapshot")) return "/dashboard/snapshot";
+  if (pathname.startsWith("/dashboard/diagnostic")) return "/dashboard/diagnostic";
+  if (pathname.startsWith("/dashboard/offers/new")) return "/dashboard/offers/new";
+  if (pathname.startsWith("/dashboard/analytics")) return "/dashboard/analytics";
+  if (/^\/dashboard\/offers\/[^/]+/.test(pathname)) return "/dashboard/offers/[id]";
+  if (pathname.startsWith("/dashboard/offers")) return "/dashboard/offers";
+  return "/dashboard";
+}
+
+function inferStep(route: string) {
+  if (route.startsWith("/dashboard/snapshot")) return "snapshot";
+  if (route.startsWith("/dashboard/diagnostic")) return "diagnostic";
+  if (route.startsWith("/dashboard/offers/new")) return "offer_builder";
+  if (route.startsWith("/dashboard/analytics")) return "analytics";
+  if (route === "/dashboard/offers/[id]") return "execution";
+  if (route.startsWith("/dashboard/offers")) return "offers";
+  return "dashboard";
 }
 
 function NavLink({
@@ -58,12 +81,27 @@ function NavLink({
   );
 }
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!pathname || !pathname.startsWith("/dashboard")) return;
+
+    const route = normalizeDashboardRoute(pathname);
+    const step = inferStep(route);
+
+    void fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "page_view",
+        route,
+        step,
+      }),
+    }).catch(() => {
+      // best-effort analytics (never block UI)
+    });
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
