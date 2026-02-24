@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import ChicagoPulsePanel from "./ChicagoPulsePanel";
 import DailyNudgePanel from "./DailyNudgePanel";
+import { diagnosticComposite } from "@/lib/diagnostic-reports";
 
 function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -22,11 +23,28 @@ function formatDate(value?: Date | null) {
   }).format(value);
 }
 
+function formatDateTime(value?: Date | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(value);
+}
+
 export default async function DashboardPage() {
   const [{ userId }, user] = await Promise.all([auth(), currentUser()]);
   if (!userId) redirect("/sign-in");
 
-  const [snapshot, latestOffer, runCount, checkInCount, revenueAgg] = await Promise.all([
+  const [
+    snapshot,
+    latestOffer,
+    runCount,
+    checkInCount,
+    revenueAgg,
+    recentDiagnostics,
+  ] = await Promise.all([
     db.creatorSnapshot.findUnique({
       where: { userId },
       select: {
@@ -52,9 +70,50 @@ export default async function DashboardPage() {
       where: { userId },
       _sum: { revenueCents: true },
     }),
+    db.diagnosticReport.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        createdAt: true,
+        monetizationScore: true,
+        audienceScore: true,
+        offerScore: true,
+        momentumScore: true,
+        clarityScore: true,
+      },
+    }),
   ]);
 
   const totalRevenueCents = revenueAgg._sum.revenueCents ?? 0;
+
+  const diagnosticHistory = recentDiagnostics.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt,
+    scores: {
+      monetization: r.monetizationScore,
+      audience: r.audienceScore,
+      offer: r.offerScore,
+      momentum: r.momentumScore,
+      clarity: r.clarityScore,
+    },
+  }));
+
+  const latestDiagnostic = diagnosticHistory[0] ?? null;
+  const previousDiagnostic = diagnosticHistory[1] ?? null;
+
+  const latestComposite = latestDiagnostic
+    ? diagnosticComposite(latestDiagnostic.scores)
+    : null;
+  const previousComposite = previousDiagnostic
+    ? diagnosticComposite(previousDiagnostic.scores)
+    : null;
+
+  const diagnosticDelta =
+    latestComposite !== null && previousComposite !== null
+      ? latestComposite - previousComposite
+      : null;
 
   return (
     <div className="grid gap-6">
@@ -137,7 +196,31 @@ export default async function DashboardPage() {
 
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
             {snapshot ? (
-              <div>Ready to run from your latest Snapshot.</div>
+              latestDiagnostic ? (
+                <>
+                  <div>
+                    Latest composite:{" "}
+                    <span className="font-semibold text-white">
+                      {latestComposite}
+                    </span>
+                    {diagnosticDelta !== null ? (
+                      <span
+                        className={`ml-2 ${
+                          diagnosticDelta >= 0 ? "text-emerald-300" : "text-rose-300"
+                        }`}
+                      >
+                        {diagnosticDelta >= 0 ? "+" : ""}
+                        {diagnosticDelta}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mt-1 text-white/50">
+                    Saved {formatDateTime(latestDiagnostic.createdAt)}
+                  </div>
+                </>
+              ) : (
+                <div>Ready to run from your latest Snapshot.</div>
+              )
             ) : (
               <div>Complete Snapshot first to unlock this step.</div>
             )}
@@ -239,9 +322,127 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {/* Diagnostic Trend Summary */}
+      <section className="rounded-3xl border border-white/10 bg-black/30 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs text-white/60">Diagnostic History</div>
+            <h2 className="mt-1 text-lg font-extrabold">Trend snapshot</h2>
+            <p className="mt-1 text-sm text-white/70">
+              Track whether your score improves as you update your Snapshot and execute.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/diagnostic"
+            className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+          >
+            Open Diagnostic →
+          </Link>
+        </div>
+
+        {diagnosticHistory.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-4 text-sm text-white/70">
+            No diagnostic runs saved yet. Run the Diagnostic once and your history will appear here.
+          </div>
+        ) : (
+          <>
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                <div className="text-xs text-white/60">Latest composite</div>
+                <div className="mt-1 text-xl font-extrabold">{latestComposite}</div>
+                <div className="mt-1 text-xs text-white/50">
+                  {formatDateTime(latestDiagnostic?.createdAt)}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                <div className="text-xs text-white/60">Change vs previous</div>
+                <div
+                  className={`mt-1 text-xl font-extrabold ${
+                    diagnosticDelta === null
+                      ? "text-white"
+                      : diagnosticDelta >= 0
+                      ? "text-emerald-300"
+                      : "text-rose-300"
+                  }`}
+                >
+                  {diagnosticDelta === null
+                    ? "—"
+                    : `${diagnosticDelta >= 0 ? "+" : ""}${diagnosticDelta}`}
+                </div>
+                <div className="mt-1 text-xs text-white/50">
+                  {diagnosticDelta === null ? "Need 2 runs" : "Composite delta"}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                <div className="text-xs text-white/60">Runs stored</div>
+                <div className="mt-1 text-xl font-extrabold">{diagnosticHistory.length}</div>
+                <div className="mt-1 text-xs text-white/50">Showing recent runs</div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                <div className="text-xs text-white/60">Best current score</div>
+                <div className="mt-1 text-xl font-extrabold">
+                  {latestDiagnostic
+                    ? Math.max(
+                        latestDiagnostic.scores.monetization,
+                        latestDiagnostic.scores.audience,
+                        latestDiagnostic.scores.offer,
+                        latestDiagnostic.scores.momentum,
+                        latestDiagnostic.scores.clarity
+                      )
+                    : "—"}
+                </div>
+                <div className="mt-1 text-xs text-white/50">Highest dimension</div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              {diagnosticHistory.map((r, idx) => {
+                const comp = diagnosticComposite(r.scores);
+                return (
+                  <div
+                    key={r.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
+                  >
+                    <div className="text-sm">
+                      <div className="font-semibold text-white/90">
+                        {idx === 0 ? "Latest run" : `Run ${diagnosticHistory.length - idx}`}
+                      </div>
+                      <div className="text-xs text-white/50">
+                        {formatDateTime(r.createdAt)}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Chip label="Composite" value={comp} />
+                      <Chip label="M" value={r.scores.monetization} />
+                      <Chip label="A" value={r.scores.audience} />
+                      <Chip label="O" value={r.scores.offer} />
+                      <Chip label="Mo" value={r.scores.momentum} />
+                      <Chip label="C" value={r.scores.clarity} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </section>
+
       {/* Your existing retention / insight panels stay here */}
       <DailyNudgePanel />
       <ChicagoPulsePanel />
+    </div>
+  );
+}
+
+function Chip({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs">
+      <span className="text-white/55">{label}</span>{" "}
+      <span className="font-semibold text-white/90">{value}</span>
     </div>
   );
 }
