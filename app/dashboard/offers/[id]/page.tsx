@@ -5,6 +5,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import CopyBlock from "./CopyBlock";
 import ExecutionRunsPanel from "./ExecutionRunsPanel";
+import OfferEditorPanel from "./OfferEditorPanel";
 import UpgradeGate from "@/app/dashboard/_components/UpgradeGate";
 import { getUserPlan } from "@/lib/billing/entitlement";
 import { hasAccess } from "@/lib/billing/plans";
@@ -50,6 +51,7 @@ export default async function OfferPage({
   const userPlan = await getUserPlan(userId);
   const canIterate = hasAccess(userPlan, "RIVER_NORTH");
   const canAssets = hasAccess(userPlan, "RIVER_NORTH");
+  const canEdit = hasAccess(userPlan, "SOUTH_LOOP");
 
   const offer = await db.offerBlueprint.findUnique({ where: { id } });
   if (!offer) return notFound();
@@ -111,6 +113,12 @@ export default async function OfferPage({
 
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/dashboard/offers"
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+            >
+              ← Offer Library
+            </Link>
+            <Link
               href="/dashboard/offers/new"
               className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
             >
@@ -120,7 +128,7 @@ export default async function OfferPage({
               href="/dashboard/diagnostic"
               className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
             >
-              ← Diagnostic
+              Diagnostic
             </Link>
           </div>
         </div>
@@ -146,6 +154,36 @@ export default async function OfferPage({
           ) : null}
         </div>
       </div>
+
+      {/* Blueprint Editor */}
+      {canEdit ? (
+        <OfferEditorPanel
+          offerId={offer.id}
+          initial={{
+            lane: offer.lane,
+            title: offer.title,
+            promise: offer.promise,
+            goal: offer.goal,
+            audience: offer.audience,
+            vibe: offer.vibe,
+            pricing: offer.pricing,
+            deliverables: offer.deliverables,
+            funnel: offer.funnel,
+            scripts: offer.scripts,
+          }}
+        />
+      ) : (
+        <UpgradeGate
+          title="Unlock Offer Blueprint Editing"
+          message="Free users can view limited results, but editing Offer Blueprints is unlocked on South Loop and above."
+          currentPlan={userPlan}
+          requiredPlan="SOUTH_LOOP"
+          primaryCtaHref="/pricing"
+          primaryCtaLabel="Upgrade to South Loop →"
+          secondaryCtaHref="/dashboard"
+          secondaryCtaLabel="Back to Dashboard"
+        />
+      )}
 
       {canIterate ? (
         <>
