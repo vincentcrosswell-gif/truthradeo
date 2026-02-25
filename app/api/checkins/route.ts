@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { trackAppEvent } from "@/lib/events";
 import { getUserPlan } from "@/lib/billing/entitlement";
 import { hasAccess } from "@/lib/billing/plans";
 
@@ -106,6 +107,11 @@ export async function POST(req: Request) {
 
   const day = startOfChicagoDay(new Date());
 
+  const existing = await db.offerDailyCheckIn.findUnique({
+    where: { offerId_day: { offerId, day } },
+    select: { id: true },
+  });
+
   const energy = Math.min(5, Math.max(1, intOr0(body?.energy || 3)));
   const minutesExecuted = Math.min(24 * 60, Math.max(0, intOr0(body?.minutesExecuted || 0)));
 
@@ -115,6 +121,8 @@ export async function POST(req: Request) {
   const win = str(body?.win).slice(0, 500);
   const blocker = str(body?.blocker).slice(0, 500);
   const nextStep = str(body?.nextStep).slice(0, 500);
+
+  const snapshot = await db.creatorSnapshot.findUnique({ where: { userId } });
 
   const saved = await db.offerDailyCheckIn.upsert({
     where: { offerId_day: { offerId, day } },
@@ -140,6 +148,25 @@ export async function POST(req: Request) {
       nextStep,
     },
   });
+
+  // Funnel completion: Daily check-in saved (count only the first save of the day as a “completion”)
+  if (!existing) {
+    await trackAppEvent({
+      userId,
+      name: "daily_checkin_saved",
+      route: "/dashboard/offers/[id]",
+      step: "execution",
+      offerId,
+      snapshotId: snapshot?.id ?? null,
+      meta: {
+        day: day.toISOString(),
+        energy,
+        minutesExecuted,
+        keyMetric,
+        keyMetricValue,
+      },
+    });
+  }
 
   return noStoreJson({ checkIn: saved });
 }

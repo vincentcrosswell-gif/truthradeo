@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { buildChicagoIterationPlan } from "@/lib/iteration/chicago";
+import { trackAppEvent } from "@/lib/events";
 import { getUserPlan } from "@/lib/billing/entitlement";
 import { hasAccess } from "@/lib/billing/plans";
 
@@ -145,6 +146,25 @@ export async function POST(req: Request) {
       blockers: runInput.blockers || "",
       notes: runInput.notes || "",
       iterationPlanJson: iterationPlan as any,
+    },
+  });
+
+  // Funnel completion: Execution run logged
+  await trackAppEvent({
+    userId,
+    name: "execution_run_logged",
+    route: "/dashboard/offers/[id]",
+    step: "execution",
+    offerId,
+    snapshotId: snapshot?.id ?? null,
+    meta: {
+      runId: created.id,
+      channel: runInput.channel,
+      outreachCount: runInput.outreachCount,
+      leadsCount: runInput.leadsCount,
+      callsBooked: runInput.callsBooked,
+      salesCount: runInput.salesCount,
+      revenueCents: runInput.revenueCents,
     },
   });
 

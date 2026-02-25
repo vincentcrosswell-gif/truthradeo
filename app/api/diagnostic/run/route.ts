@@ -1,6 +1,7 @@
 // app/api/diagnostic/run/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { trackAppEvent } from "@/lib/events";
 import {
   getDiagnosticHistory,
   persistDiagnosticReportForUser,
@@ -24,6 +25,19 @@ export async function POST() {
       400
     );
   }
+
+  // Funnel completion: Diagnostic run executed (even if deduped)
+  await trackAppEvent({
+    userId,
+    name: "diagnostic_run_saved",
+    route: "/dashboard/diagnostic",
+    step: "diagnostic",
+    snapshotId: persisted.snapshot?.id ?? null,
+    meta: {
+      reportId: persisted.reportId,
+      deduped: persisted.deduped,
+    },
+  });
 
   const history = await getDiagnosticHistory(userId, 8);
 

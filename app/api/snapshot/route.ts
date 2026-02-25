@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { trackAppEvent } from "@/lib/events";
 
 const SNAPSHOT_FIELD_RULES = {
   artistName: { max: 100 },
@@ -133,6 +134,18 @@ export async function POST(req: Request) {
       where: { userId },
       update: updateData,
       create: createData,
+    });
+
+    // Funnel completion: Snapshot saved
+    await trackAppEvent({
+      userId,
+      name: "snapshot_saved",
+      route: "/dashboard/snapshot",
+      step: "snapshot",
+      snapshotId: snapshot.id,
+      meta: {
+        fields: Object.keys(data),
+      },
     });
 
     return NextResponse.json({ snapshot });

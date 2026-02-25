@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { buildOfferBlueprint } from "@/lib/offers";
+import { trackAppEvent } from "@/lib/events";
 import { getUserPlan } from "@/lib/billing/entitlement";
 import { hasAccess } from "@/lib/billing/plans";
 
@@ -94,6 +95,20 @@ export async function POST(req: Request) {
       deliverables: blueprint.deliverables as any,
       funnel: blueprint.funnel as any,
       scripts: blueprint.scripts as any,
+    },
+  });
+
+  // Funnel completion: Offer blueprint created
+  await trackAppEvent({
+    userId,
+    name: "offer_blueprint_created",
+    route: "/dashboard/offers/new",
+    step: "offer_builder",
+    offerId: offer.id,
+    snapshotId: snapshot.id,
+    meta: {
+      lane,
+      plan,
     },
   });
 
