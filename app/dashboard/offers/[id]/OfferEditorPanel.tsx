@@ -59,6 +59,13 @@ function safeParseJson<T = unknown>(raw: string, label: string) {
   }
 }
 
+const inputCls =
+  "mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none ring-0 placeholder:text-white/35 focus:border-cyan-300/20 focus:bg-black/50";
+const textAreaCls =
+  "mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none ring-0 placeholder:text-white/35 focus:border-cyan-300/20 focus:bg-black/50";
+const monoAreaCls =
+  "mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs outline-none ring-0 placeholder:text-white/35 focus:border-cyan-300/20 focus:bg-black/50";
+
 export default function OfferEditorPanel({ offerId, initial }: OfferEditorPayload) {
   const router = useRouter();
 
@@ -93,6 +100,7 @@ export default function OfferEditorPanel({ offerId, initial }: OfferEditorPayloa
     setPricingJson(prettyJson(offer?.pricing ?? []));
     setFunnelJson(prettyJson(offer?.funnel ?? []));
     setDeliverablesText(deliverablesToText(offer?.deliverables ?? []));
+
     const s = scriptsShape(offer?.scripts ?? {});
     setDm(s.dm);
     setCaption(s.caption);
@@ -140,11 +148,7 @@ export default function OfferEditorPanel({ offerId, initial }: OfferEditorPayloa
           pricing: parsedPricing.value,
           deliverables,
           funnel: parsedFunnel.value,
-          scripts: {
-            dm,
-            caption,
-            followUp,
-          },
+          scripts: { dm, caption, followUp },
         }),
       });
 
@@ -218,176 +222,276 @@ export default function OfferEditorPanel({ offerId, initial }: OfferEditorPayloa
   }
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-white/60">Offer Blueprint Editor</div>
-          <h2 className="mt-1 text-lg font-extrabold">Edit your offer live</h2>
-          <p className="mt-1 max-w-2xl text-sm text-white/70">
-            Update the title, promise, pricing ladder, funnel, and scripts. Saving will refresh the page so the workspace below reflects your changes.
-          </p>
+    <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_6%_0%,rgba(34,211,238,0.10),transparent_35%),radial-gradient(circle_at_100%_0%,rgba(217,70,239,0.10),transparent_38%),radial-gradient(circle_at_40%_100%,rgba(250,204,21,0.06),transparent_45%)]" />
+
+      <div className="relative">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="max-w-3xl">
+            <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em]">
+              <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2.5 py-1 text-cyan-100">
+                Studio Console
+              </span>
+              <span className="rounded-full border border-fuchsia-300/20 bg-fuchsia-400/10 px-2.5 py-1 text-fuchsia-100">
+                Offer Editor
+              </span>
+              <span className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-emerald-100">
+                Live
+              </span>
+            </div>
+
+            <h2 className="mt-3 text-lg font-black tracking-tight text-white sm:text-xl">
+              Edit your offer live
+            </h2>
+            <p className="mt-1 text-sm text-white/70">
+              This is your blueprint console. Tune title, promise, pricing, funnel, and scripts,
+              then save to refresh the workspace modules below.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={regenerateFromSnapshot}
+              disabled={isRegenerating || isSaving}
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/90 hover:bg-white/10 disabled:opacity-50"
+            >
+              {isRegenerating ? "Regenerating..." : "Regenerate from Snapshot"}
+            </button>
+            <button
+              onClick={saveChanges}
+              disabled={isSaving || isRegenerating}
+              className="rounded-xl border border-cyan-300/20 bg-cyan-400/15 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/20 disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={regenerateFromSnapshot}
-            disabled={isRegenerating || isSaving}
-            className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
-          >
-            {isRegenerating ? "Regenerating..." : "Regenerate from Snapshot"}
-          </button>
-          <button
-            onClick={saveChanges}
-            disabled={isSaving || isRegenerating}
-            className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-50"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
-      </div>
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+            {error}
+          </div>
+        ) : null}
 
-      {error ? (
-        <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
-          {error}
-        </div>
-      ) : null}
+        {message ? (
+          <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-100">
+            {message}
+          </div>
+        ) : null}
 
-      {message ? (
-        <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-100">
-          {message}
-        </div>
-      ) : null}
+        {/* Lane selector strip */}
+        <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Offer Lane</div>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {LANE_OPTIONS.map((opt) => {
+              const active = lane === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setLane(opt.id)}
+                  className={`rounded-xl border px-3 py-2 text-xs transition ${
+                    active
+                      ? "border-cyan-300/25 bg-cyan-400/12 text-cyan-100"
+                      : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-          <label className="block text-xs text-white/60">Lane</label>
+          {/* Hidden select kept for full form parity / accessibility */}
+          <label className="sr-only" htmlFor="lane-select-hidden">
+            Lane
+          </label>
           <select
+            id="lane-select-hidden"
             value={lane}
             onChange={(e) => setLane(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
+            className="sr-only"
           >
             {LANE_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id} className="bg-black">
+              <option key={opt.id} value={opt.id}>
                 {opt.label}
               </option>
             ))}
           </select>
+        </div>
 
-          <label className="mt-4 block text-xs text-white/60">Title</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-            placeholder="Offer title"
-          />
+        <div className="mt-4 grid gap-4 xl:grid-cols-12">
+          {/* Left: core identity */}
+          <div className="xl:col-span-5 space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Core Identity</div>
 
-          <label className="mt-4 block text-xs text-white/60">Promise</label>
-          <textarea
-            value={promise}
-            onChange={(e) => setPromise(e.target.value)}
-            rows={4}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-            placeholder="What the offer helps the artist achieve"
-          />
+              <Field label="Title">
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className={inputCls}
+                  placeholder="Offer title"
+                />
+              </Field>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div>
-              <label className="block text-xs text-white/60">Goal</label>
-              <input
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-                placeholder="e.g. more paid collabs"
+              <Field label="Promise">
+                <textarea
+                  value={promise}
+                  onChange={(e) => setPromise(e.target.value)}
+                  rows={4}
+                  className={textAreaCls}
+                  placeholder="What outcome the artist gets, and what this changes for them"
+                />
+              </Field>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Goal">
+                  <input
+                    value={goal}
+                    onChange={(e) => setGoal(e.target.value)}
+                    className={inputCls}
+                    placeholder="e.g. more paid collabs"
+                  />
+                </Field>
+
+                <Field label="Audience">
+                  <input
+                    value={audience}
+                    onChange={(e) => setAudience(e.target.value)}
+                    className={inputCls}
+                    placeholder="e.g. 1k–10k listeners"
+                  />
+                </Field>
+              </div>
+
+              <Field label="Vibe / tags">
+                <input
+                  value={vibe}
+                  onChange={(e) => setVibe(e.target.value)}
+                  className={inputCls}
+                  placeholder="e.g. dark melodic, hype, soulful"
+                />
+              </Field>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Scope & Deliverables</div>
+
+              <Field label="Deliverables (one per line)">
+                <textarea
+                  value={deliverablesText}
+                  onChange={(e) => setDeliverablesText(e.target.value)}
+                  rows={10}
+                  className={monoAreaCls}
+                  placeholder={`Clear scope + turnaround\nProof/examples\nPayment link\nDelivery method`}
+                />
+              </Field>
+
+              <div className="mt-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/65">
+                Tip: keep deliverables super concrete. Artists trust offers that feel operational,
+                not vague.
+              </div>
+            </div>
+          </div>
+
+          {/* Middle: pricing + funnel */}
+          <div className="xl:col-span-4 space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Pricing Ladder JSON</div>
+              <div className="mt-1 text-[11px] text-white/55">
+                Array of objects like tier / price / includes[].
+              </div>
+              <textarea
+                value={pricingJson}
+                onChange={(e) => setPricingJson(e.target.value)}
+                rows={15}
+                className={`${monoAreaCls} mt-3`}
               />
             </div>
 
-            <div>
-              <label className="block text-xs text-white/60">Audience</label>
-              <input
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-                placeholder="e.g. 1k–10k listeners"
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Funnel JSON</div>
+              <div className="mt-1 text-[11px] text-white/55">
+                Array of objects like step / action.
+              </div>
+              <textarea
+                value={funnelJson}
+                onChange={(e) => setFunnelJson(e.target.value)}
+                rows={13}
+                className={`${monoAreaCls} mt-3`}
               />
             </div>
           </div>
 
-          <label className="mt-4 block text-xs text-white/60">Vibe / tags</label>
-          <input
-            value={vibe}
-            onChange={(e) => setVibe(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-            placeholder="e.g. dark melodic, hype, soulful"
-          />
-        </div>
+          {/* Right: scripts */}
+          <div className="xl:col-span-3 space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Script Rack</div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-          <label className="block text-xs text-white/60">Deliverables (one per line)</label>
-          <textarea
-            value={deliverablesText}
-            onChange={(e) => setDeliverablesText(e.target.value)}
-            rows={8}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs outline-none"
-            placeholder={`Clear scope + turnaround\nProof/examples\nPayment link\nDelivery method`}
-          />
+              <Field label="DM opener">
+                <textarea
+                  value={dm}
+                  onChange={(e) => setDm(e.target.value)}
+                  rows={6}
+                  className={textAreaCls}
+                />
+              </Field>
 
-          <label className="mt-4 block text-xs text-white/60">
-            Pricing ladder JSON (array of {"{ tier, price, includes[] }"})
-          </label>
-          <textarea
-            value={pricingJson}
-            onChange={(e) => setPricingJson(e.target.value)}
-            rows={10}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs outline-none"
-          />
+              <Field label="Caption">
+                <textarea
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  rows={6}
+                  className={textAreaCls}
+                />
+              </Field>
 
-          <label className="mt-4 block text-xs text-white/60">
-            Funnel JSON (array of {"{ step, action }"})
-          </label>
-          <textarea
-            value={funnelJson}
-            onChange={(e) => setFunnelJson(e.target.value)}
-            rows={10}
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs outline-none"
-          />
-        </div>
-      </div>
+              <Field label="Follow-up">
+                <textarea
+                  value={followUp}
+                  onChange={(e) => setFollowUp(e.target.value)}
+                  rows={6}
+                  className={textAreaCls}
+                />
+              </Field>
+            </div>
 
-      <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4">
-        <div className="mb-3 text-sm font-semibold text-white/90">Scripts</div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="block text-xs text-white/60">DM opener</label>
-            <textarea
-              value={dm}
-              onChange={(e) => setDm(e.target.value)}
-              rows={6}
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-white/60">Caption</label>
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              rows={6}
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-white/60">Follow-up</label>
-            <textarea
-              value={followUp}
-              onChange={(e) => setFollowUp(e.target.value)}
-              rows={6}
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none"
-            />
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/55">Console Tips</div>
+              <ul className="mt-2 grid gap-2 text-xs text-white/75">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                  <span>Make the title outcome-first, not feature-first.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-fuchsia-300" />
+                  <span>Keep pricing ladder easy to say out loud in a DM.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  <span>Scripts should sound like a person, not a brochure.</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-4">
+      <label className="block text-xs text-white/60">{label}</label>
+      {children}
+    </div>
   );
 }
