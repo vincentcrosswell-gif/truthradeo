@@ -1,4 +1,5 @@
 // app/dashboard/ChicagoPulsePanel.tsx
+import type { ReactNode } from "react";
 import { db } from "@/lib/db";
 
 type CountItem = { label: string; count: number };
@@ -33,18 +34,24 @@ function pct(count: number, total: number) {
 }
 
 function normalizeCity(value: string) {
-  const v = clean(value);
-  if (!v) return "";
-  // If they typed only "Chicago", keep it.
-  // If it's "Chicago, IL", keep it.
-  return v;
+  return clean(value);
 }
 
 function isChicagoCity(value: string) {
   const v = clean(value).toLowerCase();
-  if (!v) return false;
-  // matches "Chicago" or "Chicago, IL" etc
-  return v.startsWith("chicago");
+  return Boolean(v) && v.startsWith("chicago");
+}
+
+function formatUpdated(value: string) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(d);
 }
 
 function BarRow({
@@ -57,13 +64,14 @@ function BarRow({
   accentClass: string;
 }) {
   const p = pct(item.count, total);
-  const w = Math.max(6, p); // ensures visible bar
+  const w = Math.max(8, p);
+
   return (
-    <div className="grid gap-2">
-      <div className="flex items-center justify-between gap-3 text-sm">
+    <div className="min-w-0 grid gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-sm">
         <div className="flex min-w-0 items-center gap-2">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-white/40" />
-          <span className="truncate font-semibold text-white/85">
+          <span className="truncate font-semibold text-white/85" title={item.label}>
             {item.label}
           </span>
         </div>
@@ -92,11 +100,9 @@ function StatPill({
   sub?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 tr-shimmer">
-      <div className="text-xs uppercase tracking-wider text-white/50">
-        {label}
-      </div>
-      <div className="mt-1 text-2xl font-black tracking-tight text-white">
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="text-[10px] uppercase tracking-[0.16em] text-white/50">{label}</div>
+      <div className="mt-1 break-words text-xl font-black tracking-tight text-white sm:text-2xl">
         {value}
       </div>
       {sub ? <div className="mt-1 text-xs text-white/60">{sub}</div> : null}
@@ -104,8 +110,27 @@ function StatPill({
   );
 }
 
+function GroupCard({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-black/25 p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="text-sm font-extrabold tracking-wide text-white/85">{title}</h3>
+        {note ? <span className="text-[11px] text-white/50">{note}</span> : null}
+      </div>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
+}
+
 export default async function ChicagoPulsePanel() {
-  // Pull latest snapshots (we filter to Chicago locally)
   const snapshots = await db.creatorSnapshot.findMany({
     select: {
       updatedAt: true,
@@ -124,17 +149,13 @@ export default async function ChicagoPulsePanel() {
     take: 2500,
   });
 
-  const chicagoSnapshots = snapshots.filter((s) =>
-    isChicagoCity(normalizeCity(s.cityArea))
-  );
-
+  const chicagoSnapshots = snapshots.filter((s) => isChicagoCity(normalizeCity(s.cityArea)));
   const total = chicagoSnapshots.length;
 
   const genres = new Map<string, number>();
   const vibes = new Map<string, number>();
   const goals = new Map<string, number>();
   const audience = new Map<string, number>();
-  const emails = new Map<string, number>();
   const listeners = new Map<string, number>();
   const prices = new Map<string, number>();
   const performances = new Map<string, number>();
@@ -146,15 +167,13 @@ export default async function ChicagoPulsePanel() {
     if (s.updatedAt) latestISO = s.updatedAt.toISOString();
 
     bump(genres, s.genre);
+    for (const tag of splitCommaTags(s.vibeTags)) bump(vibes, tag);
     bump(goals, s.primaryGoal);
     bump(audience, s.audienceSize);
-    bump(emails, s.emailList);
     bump(listeners, s.monthlyListeners);
     bump(prices, s.priceRange);
     bump(performances, s.performanceFrequency);
     bump(blockers, s.biggestBlocker);
-
-    for (const tag of splitCommaTags(s.vibeTags)) bump(vibes, tag);
   }
 
   const topGenres = topN(genres, 6);
@@ -172,257 +191,202 @@ export default async function ChicagoPulsePanel() {
   const topBlockerLabel = topBlockers[0]?.label ?? "—";
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+    <section className="min-w-0 rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
             <span className="inline-block h-2 w-2 rounded-full bg-white/50" />
             Chicago Pulse
           </div>
 
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-white">
+          <h2 className="mt-3 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
             What Chicago creators are doing right now
           </h2>
 
-          <p className="mt-1 max-w-2xl text-sm text-white/70">
-            This is the live economic signal inside Stage 1. Use it to position
-            your offer against what Chicago creators actually want — and what’s
-            stopping them.
+          <p className="mt-1 max-w-3xl text-sm text-white/70">
+            Live Stage 1 city signal. Use it to shape your promise around what Chicago creators want most and what is blocking them.
           </p>
         </div>
 
-        <div className="text-xs text-white/50">
-          Updated:{" "}
-          <span className="font-semibold text-white/70">
-            {latestISO || "—"}
-          </span>
+        <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/60">
+          Updated <span className="font-semibold text-white/80">{formatUpdated(latestISO)}</span>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
-        <StatPill
-          label="Chicago signals"
-          value={String(total)}
-          sub="Snapshots detected as Chicago"
-        />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatPill label="Chicago signals" value={String(total)} sub="Snapshots detected" />
         <StatPill label="Top genre" value={topGenreLabel} sub="Most common genre" />
         <StatPill label="Top vibe" value={topVibeLabel} sub="Most common vibe tag" />
-        <StatPill
-          label="Top blocker"
-          value={topBlockerLabel}
-          sub="Most common friction point"
-        />
+        <StatPill label="Top blocker" value={topBlockerLabel} sub="Most common friction" />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        {/* Column 1 */}
-        <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-extrabold tracking-wide text-white/85">
-              Top Genres
-            </h3>
-            <span className="text-xs text-white/50">Chicago-only</span>
-          </div>
-
-          <div className="grid gap-4">
-            {topGenres.length ? (
-              topGenres.map((item) => (
-                <BarRow
-                  key={item.label}
-                  item={item}
-                  total={total}
-                  accentClass="bg-gradient-to-r from-white/30 to-white/70"
-                />
-              ))
-            ) : (
-              <div className="text-sm text-white/60">
-                No Chicago snapshots yet. Submit one Snapshot to activate this.
-              </div>
-            )}
-          </div>
+      {total === 0 ? (
+        <div className="mt-4 rounded-2xl border border-dashed border-white/10 bg-black/20 p-4 text-sm text-white/65">
+          No Chicago snapshots yet. Complete the Creator Snapshot with a city starting with “Chicago” (ex: Chicago or Chicago, IL) to light this board up.
         </div>
-
-        {/* Column 2 */}
-        <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-extrabold tracking-wide text-white/85">
-              Vibe Tags
-            </h3>
-            <span className="text-xs text-white/50">culture texture</span>
-          </div>
-
-          <div className="grid gap-4">
-            {topVibes.length ? (
-              topVibes.map((item) => (
-                <BarRow
-                  key={item.label}
-                  item={item}
-                  total={total}
-                  accentClass="bg-gradient-to-r from-white/20 via-white/55 to-white/85"
-                />
-              ))
-            ) : (
-              <div className="text-sm text-white/60">
-                Add vibe tags (comma-separated) to light this up.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Column 3 */}
-        <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-extrabold tracking-wide text-white/85">
-              Chicago Direction
-            </h3>
-            <span className="text-xs text-white/50">goals + ranges</span>
-          </div>
-
-          <div className="grid gap-5">
-            <div className="grid gap-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Primary goals
-              </div>
+      ) : (
+        <div className="mt-4 grid min-w-0 gap-4 xl:grid-cols-12">
+          <div className="xl:col-span-7 grid min-w-0 gap-4 md:grid-cols-2">
+            <GroupCard title="Top Genres" note="Chicago-only">
               <div className="grid gap-3">
-                {topGoals.length ? (
-                  topGoals.map((g) => (
+                {topGenres.map((item) => (
+                  <BarRow
+                    key={`genre-${item.label}`}
+                    item={item}
+                    total={total}
+                    accentClass="bg-gradient-to-r from-cyan-400/40 via-cyan-300/60 to-blue-300/80"
+                  />
+                ))}
+              </div>
+            </GroupCard>
+
+            <GroupCard title="Vibe Tags" note="culture texture">
+              <div className="grid gap-3">
+                {topVibes.length ? (
+                  topVibes.map((item) => (
                     <BarRow
-                      key={g.label}
-                      item={g}
+                      key={`vibe-${item.label}`}
+                      item={item}
                       total={total}
-                      accentClass="bg-gradient-to-r from-white/15 to-white/65"
+                      accentClass="bg-gradient-to-r from-fuchsia-400/35 via-pink-300/60 to-amber-300/70"
                     />
                   ))
                 ) : (
-                  <div className="text-sm text-white/60">No goal data yet.</div>
+                  <div className="text-sm text-white/60">Add comma-separated vibe tags in Snapshot to populate this.</div>
                 )}
               </div>
-              <div className="text-xs text-white/55">
-                Most common goal:{" "}
-                <span className="font-semibold text-white/80">
-                  {topGoalLabel}
-                </span>
+            </GroupCard>
+
+            <div className="md:col-span-2 min-w-0 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-xs uppercase tracking-[0.16em] text-white/55">Direction Board</div>
+                <div className="text-[11px] text-white/50">Most common goal: <span className="font-semibold text-white/75">{topGoalLabel}</span></div>
+              </div>
+
+              <div className="mt-3 grid gap-4 lg:grid-cols-2">
+                <div className="min-w-0">
+                  <div className="mb-2 text-xs uppercase tracking-[0.14em] text-white/50">Primary goals</div>
+                  <div className="grid gap-3">
+                    {topGoals.length ? (
+                      topGoals.map((g) => (
+                        <BarRow
+                          key={`goal-${g.label}`}
+                          item={g}
+                          total={total}
+                          accentClass="bg-gradient-to-r from-emerald-400/35 via-lime-300/60 to-cyan-300/70"
+                        />
+                      ))
+                    ) : (
+                      <div className="text-sm text-white/60">No goal data yet.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="min-w-0">
+                  <div className="mb-2 text-xs uppercase tracking-[0.14em] text-white/50">Top blockers</div>
+                  <div className="grid gap-2">
+                    {topBlockers.length ? (
+                      topBlockers.map((b) => (
+                        <div
+                          key={`block-${b.label}`}
+                          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+                        >
+                          <span className="truncate font-semibold text-white/85" title={b.label}>
+                            {b.label}
+                          </span>
+                          <span className="text-xs text-white/60">
+                            {b.count} • {pct(b.count, total)}%
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-white/60">No blocker data yet.</div>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-white/55">
+                    Tip: position your offer as the fix for the top blocker, not just a louder version of what everyone else has.
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="grid gap-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Audience size (ranges)
-              </div>
+          <div className="xl:col-span-5 grid min-w-0 gap-4">
+            <GroupCard title="Audience Ranges" note="who is in the room">
               <div className="grid gap-3">
                 {topAudience.length ? (
                   topAudience.map((a) => (
                     <BarRow
-                      key={a.label}
+                      key={`aud-${a.label}`}
                       item={a}
                       total={total}
-                      accentClass="bg-gradient-to-r from-white/10 via-white/45 to-white/75"
+                      accentClass="bg-gradient-to-r from-blue-400/35 via-cyan-300/60 to-white/70"
                     />
                   ))
                 ) : (
                   <div className="text-sm text-white/60">No audience data yet.</div>
                 )}
               </div>
-            </div>
+            </GroupCard>
 
-            <div className="grid gap-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Monthly listeners (ranges)
-              </div>
+            <GroupCard title="Monthly Listeners" note="range clusters">
               <div className="grid gap-3">
                 {topListeners.length ? (
                   topListeners.map((l) => (
                     <BarRow
-                      key={l.label}
+                      key={`listener-${l.label}`}
                       item={l}
                       total={total}
-                      accentClass="bg-gradient-to-r from-white/10 to-white/70"
+                      accentClass="bg-gradient-to-r from-violet-400/35 via-fuchsia-300/60 to-white/70"
                     />
                   ))
                 ) : (
                   <div className="text-sm text-white/60">No listener data yet.</div>
                 )}
               </div>
-            </div>
+            </GroupCard>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Most common blockers
-              </div>
-              <ul className="mt-2 grid gap-2 text-sm text-white/75">
-                {topBlockers.length ? (
-                  topBlockers.map((b) => (
-                    <li
-                      key={b.label}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <span className="truncate font-semibold">{b.label}</span>
-                      <span className="shrink-0 text-xs text-white/60">
-                        {b.count} • {pct(b.count, total)}%
-                      </span>
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-white/60">No blocker data yet.</li>
-                )}
-              </ul>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+              <GroupCard title="Price Ranges" note="packaging market">
+                <div className="grid gap-3">
+                  {topPrices.length ? (
+                    topPrices.map((p) => (
+                      <BarRow
+                        key={`price-${p.label}`}
+                        item={p}
+                        total={total}
+                        accentClass="bg-gradient-to-r from-amber-300/35 via-orange-300/60 to-white/70"
+                      />
+                    ))
+                  ) : (
+                    <div className="text-sm text-white/60">No price data yet.</div>
+                  )}
+                </div>
+              </GroupCard>
 
-              <div className="mt-3 text-xs text-white/55">
-                Tip: Your offer converts faster when it directly attacks the top
-                blocker.
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Price ranges
-              </div>
-              <div className="grid gap-3">
-                {topPrices.length ? (
-                  topPrices.map((p) => (
-                    <BarRow
-                      key={p.label}
-                      item={p}
-                      total={total}
-                      accentClass="bg-gradient-to-r from-white/15 to-white/60"
-                    />
-                  ))
-                ) : (
-                  <div className="text-sm text-white/60">No price data yet.</div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">
-                Performance frequency
-              </div>
-              <div className="grid gap-3">
-                {topPerformances.length ? (
-                  topPerformances.map((p) => (
-                    <BarRow
-                      key={p.label}
-                      item={p}
-                      total={total}
-                      accentClass="bg-gradient-to-r from-white/10 via-white/40 to-white/70"
-                    />
-                  ))
-                ) : (
-                  <div className="text-sm text-white/60">
-                    No performance data yet.
-                  </div>
-                )}
-              </div>
+              <GroupCard title="Performance Frequency" note="stage rhythm">
+                <div className="grid gap-3">
+                  {topPerformances.length ? (
+                    topPerformances.map((p) => (
+                      <BarRow
+                        key={`perf-${p.label}`}
+                        item={p}
+                        total={total}
+                        accentClass="bg-gradient-to-r from-rose-400/35 via-pink-300/60 to-white/70"
+                      />
+                    ))
+                  ) : (
+                    <div className="text-sm text-white/60">No performance data yet.</div>
+                  )}
+                </div>
+              </GroupCard>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/70">
-        <span className="font-bold text-white/85">How to use Pulse:</span>{" "}
-        If your genre is saturated, don’t compete louder — compete sharper. Align
-        your offer with the city’s #1 blocker, then position your promise like a
-        solution Chicago creators actually need.
+      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/70">
+        <span className="font-bold text-white/85">How to use Pulse:</span> If your genre looks crowded, compete sharper—not louder. Match the city’s top blocker with a clear promise and a price point creators can act on.
       </div>
     </section>
   );

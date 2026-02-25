@@ -502,7 +502,7 @@ export default async function DashboardPage() {
 
       {/* BENTO GRID */}
       <section className="grid gap-4 xl:grid-cols-12">
-        <div className="xl:col-span-7 grid gap-4 sm:grid-cols-2">
+        <div className="xl:col-span-7 grid min-w-0 gap-4 sm:grid-cols-2">
           <PosterCard
             className="sm:col-span-2"
             accent="emerald"
@@ -639,14 +639,88 @@ export default async function DashboardPage() {
           </PosterCard>
         </div>
 
-        <div className="xl:col-span-5 grid gap-4">
+        <div className="xl:col-span-5 grid min-w-0 gap-4">
           <Shell title="Daily Nudge" subtitle="Operator mode for the next best move" accent="cyan">
             <DailyNudgePanel />
           </Shell>
 
-          <Shell title="Chicago Pulse" subtitle="Live signal board for Stage 1 creators" accent="pink">
-            <ChicagoPulsePanel />
+          <Shell title="Studio Radar" subtitle="Command Center status without the clutter" accent="pink">
+            <div className="grid gap-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <PosterMetric
+                  label="Active Station"
+                  value={nextPrimaryLabel}
+                  sub={latestOffer ? "Workspace ready" : "Follow the route"}
+                  tone="pink"
+                />
+                <PosterMetric
+                  label="Snapshot Tags"
+                  value={snapshotTags.length ? String(snapshotTags.length) : "0"}
+                  sub={snapshotTags.length ? snapshotTags.join(" • ") : "Add vibe tags"}
+                  tone="cyan"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-white/55">Route Health</div>
+                <div className="mt-2 grid gap-1.5">
+                  <SignalRow
+                    label="Snapshot"
+                    value={snapshot ? "Live" : "Missing"}
+                    good={Boolean(snapshot)}
+                  />
+                  <SignalRow
+                    label="Diagnostic"
+                    value={latestComposite !== null ? `Composite ${latestComposite}` : "Not run"}
+                    good={latestComposite !== null}
+                  />
+                  <SignalRow
+                    label="Blueprint"
+                    value={latestOffer ? "Ready" : "Build next"}
+                    good={Boolean(latestOffer)}
+                  />
+                </div>
+              </div>
+
+              {diagnosticBars.length > 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-xs uppercase tracking-[0.16em] text-white/55">Topline Scores</div>
+                  <div className="mt-2 grid gap-1.5">
+                    {diagnosticBars.map((bar) => (
+                      <MiniScoreBar key={`radar-${bar.label}`} label={bar.short} value={bar.value} tone={bar.tone} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-4 text-sm text-white/65">
+                  Run a diagnostic to light up the radar board.
+                </div>
+              )}
+            </div>
           </Shell>
+        </div>
+      </section>
+
+      {/* CHICAGO PULSE HALL */}
+      <section className="tr-noise relative overflow-hidden rounded-[1.6rem] border border-white/10 bg-black/35 p-4 sm:p-5">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(217,70,239,0.12),transparent_40%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,0.12),transparent_40%),radial-gradient(circle_at_50%_100%,rgba(250,204,21,0.08),transparent_45%)]" />
+        <div className="relative">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/55">Chicago Pulse Hall</div>
+              <h2 className="mt-1 text-lg font-black tracking-tight text-white">City Signal Board</h2>
+              <p className="mt-1 text-sm text-white/70">
+                Full-width pulse layout so the city signal board can breathe on desktop and mobile.
+              </p>
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] tracking-[0.16em] text-white/70">
+              NO OVERLAP MODE
+            </div>
+          </div>
+
+          <div className="mt-4 min-w-0">
+            <ChicagoPulsePanel />
+          </div>
         </div>
       </section>
 
@@ -748,12 +822,12 @@ function Shell({
       : "from-fuchsia-400/12 via-rose-400/8 to-transparent";
 
   return (
-    <div className={`rounded-[1.4rem] border border-white/10 bg-gradient-to-b ${accentBg} p-3`}>
+    <div className={`min-w-0 overflow-hidden rounded-[1.4rem] border border-white/10 bg-gradient-to-b ${accentBg} p-3`}>
       <div className="mb-2 px-1">
         <div className="text-xs uppercase tracking-[0.18em] text-white/55">{title}</div>
         <div className="mt-0.5 text-xs text-white/70">{subtitle}</div>
       </div>
-      {children}
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
